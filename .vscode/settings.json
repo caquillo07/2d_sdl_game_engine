@@ -1,0 +1,9 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/Users/hector/Documents/code/2d_sdl_game_engine",
+            "binaryPath": "/Users/hector/Documents/code/2d_sdl_game_engine/game_engine",
+            "binaryArgs": []
+        }
+    ]
+}
