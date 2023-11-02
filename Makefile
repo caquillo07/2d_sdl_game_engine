@@ -1,12 +1,17 @@
-CCFLAGS = $$(pkg-config --cflags lua SDL2_ttf)
-LDFLAGS = $$(pkg-config --libs lua)
+CC=g++
+LANG_STD=-std=c++17
+INCLUDES=-I"./libs/" src/*.cpp src/**/*.cpp
+CCFLAGS = -Wall -Wfatal-errors $$(pkg-config --cflags lua SDL2_ttf)
+LDFLAGS = $$(pkg-config --libs lua) -lSDL2 -lSDL2_image -lSDL2_mixer
+BIN=build/game_engine
+
+.PHONY: build
 
 build:
-	g++ -Wall -std=c++17 -I"./libs/" $(CCFLAGS) src/*.cpp -lSDL2 -lSDL2_image -lSDL2_mixer $(LDFLAGS) -o game_engine
+	$(CC) $(LANG_STD) $(CCFLAGS) $(INCLUDES) $(LDFLAGS) -o $(BIN)
 
 run: build
-	./game_engine
+	./$(BIN)
 
 clean:
-	rm game_engine
-
+	rm -rf build

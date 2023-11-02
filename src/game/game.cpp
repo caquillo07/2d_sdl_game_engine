@@ -12,8 +12,8 @@
 #include <iostream>
 #include <ostream>
 
-#include "game.h"
-#include "logger.h"
+#include "../logger/logger.h"
+#include "./game.h"
 
 Game::Game()
     : isRunning(false), millisecondsPreviousFrame(0), windowWidth(0),

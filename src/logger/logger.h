@@ -9,7 +9,7 @@ enum LogType { LInfo, LWarning, LError, LFatal };
 struct LogEntry {
     LogType type;
     std::string message;
-}
+};
 
 class Logger {
   public:
