@@ -1,4 +1,4 @@
-CCFLAGS = $$(pkg-config --cflags lua SDL2 SDL2_ttf)
+CCFLAGS = $$(pkg-config --cflags lua SDL2_ttf)
 LDFLAGS = $$(pkg-config --libs lua)
 
 build:

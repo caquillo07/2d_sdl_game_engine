@@ -1,5 +1,3 @@
-#include "game.h"
-
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_events.h>
@@ -14,15 +12,18 @@
 #include <iostream>
 #include <ostream>
 
+#include "game.h"
+#include "logger.h"
+
 Game::Game()
     : isRunning(false), millisecondsPreviousFrame(0), windowWidth(0),
       windowHeight(0) {
-    std::cout << "Game constructor" << std::endl;
+    Logger::Log("Game constructor");
 }
 
 Game::~Game() {
     isRunning = false;
-    std::cout << "Game destructor" << std::endl;
+    Logger::Log("Game destructor");
 }
 
 void Game::Run() {
@@ -58,7 +59,7 @@ void Game::Update() {
     playerPosition.y += playerVelocity.y * deltaTime;
 
     // print FPS
-    std::cout << "FPS: " << 1.0f / deltaTime << std::endl;
+    Logger::Log("FPS: " + std::to_string(1.0f / deltaTime));
     char buffer[50];
     snprintf(buffer, sizeof(buffer), "FPS: %d", (int)ceil(1.0f / deltaTime));
     SDL_SetWindowTitle(this->window, buffer);
@@ -89,15 +90,14 @@ void Game::Destroy() {
 
 void Game::Initialize() {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        std::cerr << "Error init SDL" << std::endl;
+        Logger::Err("Error init SDL");
         return;
     }
 
     SDL_DisplayMode displayMode;
     if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
-        std::cerr << "failed to get current display mode: " << SDL_GetError()
-                  << "\n"
-                  << std::endl;
+        Logger::Err("failed to get current display mode: " +
+                    std::string(SDL_GetError()));
         return;
     }
     // this->windowWidth = displayMode.w;
@@ -109,7 +109,7 @@ void Game::Initialize() {
                                     SDL_WINDOWPOS_CENTERED, this->windowWidth,
                                     this->windowHeight, SDL_WINDOW_RESIZABLE);
     if (!window) {
-        std::cerr << "Error creating SDL window" << std::endl;
+        Logger::Err("Error creating SDL window");
         return;
     }
 
@@ -119,7 +119,7 @@ void Game::Initialize() {
     this->renderer = SDL_CreateRenderer(
         window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!renderer) {
-        std::cerr << "Error creating SDL renderer" << std::endl;
+        Logger::Err("Error creating SDL renderer");
         return;
     }
 
