@@ -12,6 +12,7 @@
 #include <iostream>
 #include <ostream>
 
+#include "../ecs/ecs.h"
 #include "../logger/logger.h"
 #include "./game.h"
 
@@ -35,13 +36,7 @@ void Game::Run() {
     }
 }
 
-glm::vec2 playerPosition;
-glm::vec2 playerVelocity;
-
-void Game::Setup() {
-    playerPosition = glm::vec2(10.0f, 20.0f);
-    playerVelocity = glm::vec2(25.0f, 0.0f);
-}
+void Game::Setup() {}
 
 void Game::Update() {
     // Wait until 16ms has elapsed since last frame
@@ -55,9 +50,6 @@ void Game::Update() {
 
     millisecondsPreviousFrame = SDL_GetTicks();
 
-    playerPosition.x += playerVelocity.x * deltaTime;
-    playerPosition.y += playerVelocity.y * deltaTime;
-
     // print FPS
     Logger::Log("FPS: " + std::to_string(1.0f / deltaTime));
     char buffer[50];
@@ -68,16 +60,6 @@ void Game::Update() {
 void Game::Render() {
     SDL_SetRenderDrawColor(this->renderer, 21, 21, 21, 255);
     SDL_RenderClear(this->renderer);
-
-    // Draw png texture
-    SDL_Surface *surface = IMG_Load("./assets/images/tank-tiger-right.png");
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-
-    SDL_Rect destRect = {static_cast<int>(playerPosition.x),
-                         static_cast<int>(playerPosition.y), 32, 32};
-    SDL_RenderCopy(renderer, texture, NULL, &destRect);
-    SDL_DestroyTexture(texture);
 
     SDL_RenderPresent(this->renderer);
 }
