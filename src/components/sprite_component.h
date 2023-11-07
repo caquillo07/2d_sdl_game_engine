@@ -9,28 +9,19 @@
 #include <string>
 
 struct SpriteComponent {
-//    SDL_Texture* texture;
-//    SDL_Rect sourceRectangle;
-//    SDL_Rect destinationRectangle;
+    std::string textureAssetID;
 
     int width;
     int height;
+    SDL_Rect srcRect;
 
-    SpriteComponent() : width(50), height(50) {
-//        sourceRectangle = {0, 0, width, height};
-//        destinationRectangle = {0, 0, width, height};
+    SpriteComponent(std::string assetID = "", int width = 0, int height = 0, int sourceRectX = 0, int sourceRectY = 0) :
+            textureAssetID(assetID),
+            width(width),
+            height(height),
+            srcRect(SDL_Rect{sourceRectX, sourceRectY, width, height}) {
+
     }
-
-//    SpriteComponent(
-//            SDL_Texture* texture,
-//            SDL_Rect sourceRectangle = {0, 0, 32, 32},
-//            SDL_Rect destinationRectangle = {0, 0, 32, 32}
-//    ) :
-//            texture(texture),
-//            sourceRectangle(sourceRectangle),
-//            destinationRectangle(destinationRectangle) {
-//
-//    }
 };
 
 #endif //INC_2D_SDL_GAME_ENGINE_SPRITE_COMPONENT_H
