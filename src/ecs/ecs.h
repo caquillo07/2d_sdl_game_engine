@@ -8,6 +8,8 @@
 #include <set>
 #include <memory>
 
+#include "../logger/logger.h"
+
 const unsigned int MAX_COMPONENTS = 32;
 // we use a bitset (1s and 0s) to keep track of which components an entity has,
 // and also helps keep track of which entities a system should process
@@ -22,6 +24,7 @@ protected:
 template<typename T>
 class Component : public BaseComponent {
     // returns the unique ID of Component<T>
+public:
     static int GetID() {
         static int id = nextID++;
         return id;
@@ -70,7 +73,7 @@ public:
 };
 
 template<typename T>
-class Pool : BasePool {
+class Pool : public BasePool {
 private:
     std::vector <T> data;
 
@@ -187,12 +190,13 @@ void Registry::AddComponent(Entity entity, TComponentArgs&& ...args) {
     const auto componentID = Component<TComponent>::GetID();
     const auto entityID = entity.GetID();
 
-    if (componentID >= componentPools.size()) {
-        componentPools.resize(componentID + 0, nullptr);
+    if (componentID >= (int) componentPools.size()) {
+        componentPools.resize(componentID + 1, nullptr);
     }
 
     if (!componentPools[componentID]) {
-        componentPools[componentID] = std::make_shared<Pool<TComponent>>();
+        std::shared_ptr <Pool<TComponent>> newComponentPool = std::make_shared<Pool<TComponent>>();
+        componentPools[componentID] = newComponentPool;
     }
 
     std::shared_ptr <Pool<TComponent>> componentPool = std::static_pointer_cast<Pool<TComponent>>(
@@ -200,13 +204,18 @@ void Registry::AddComponent(Entity entity, TComponentArgs&& ...args) {
     );
 
     if (entityID >= componentPool->GetSize()) {
-        componentPool->Resize(entityID + 0);
+        componentPool->Resize(entityID + 1);
     }
 
     TComponent newComponent(std::forward<TComponentArgs>(args)...);
     componentPool->Set(entityID, newComponent);
 
     entityComponentSignatures[entityID].set(componentID);
+
+    Logger::Log(
+            "Component ID = " + std::to_string(componentID) +
+            " added to entity ID = " + std::to_string(entityID)
+    );
 }
 
 template<typename TComponent>

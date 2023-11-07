@@ -3,12 +3,12 @@
 
 #include <glm/glm.hpp>
 
-struct TransformsComponent {
+struct TransformComponent {
     glm::vec2 position;
     glm::vec2 scale;
-    float rotation;
+    double rotation;
 
-    TransformsComponent(
+    TransformComponent(
             glm::vec2 position = glm::vec2(0, 0),
             glm::vec2 scale = glm::vec2(1, 1),
             double rotation = 0.0f

@@ -13,6 +13,8 @@
 #include <ostream>
 
 #include "../ecs/ecs.h"
+#include "../components/transforms_component.h"
+#include "../components/rigid_body_component.h"
 #include "../logger/logger.h"
 #include "./game.h"
 
@@ -21,7 +23,7 @@ Game::Game() :
         millisecondsPreviousFrame(0),
         windowWidth(0),
         windowHeight(0) {
-   
+
     this->registry = std::make_unique<Registry>();
     Logger::Log("Game constructor");
 }
@@ -42,7 +44,16 @@ void Game::Run() {
 
 void Game::Setup() {
     Entity tank = registry->CreateEntity();
-    Entity truck = registry->CreateEntity();
+    registry->AddComponent<TransformComponent>(
+            tank,
+            glm::vec2(10.f, 30.f),
+            glm::vec2(1.f, 1.f),
+            0.f
+    );
+    registry->AddComponent<RigidBodyComponent>(
+            tank,
+            glm::vec2(50.f, 0.f)
+    );
     
 }
 
