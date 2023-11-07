@@ -27,6 +27,7 @@ public:
 
     void Initialize();
     void Run();
+    void LoadLevel(int levelNumber);
     void Setup();
     void ProcessInput();
     void Update();

@@ -7,6 +7,8 @@
 
 #include <SDL2/SDL_render.h>
 
+#include <algorithm>
+
 #include "../asset_store/asset_store.h"
 #include "../ecs/ecs.h"
 #include "../components/transform_component.h"
@@ -21,9 +23,30 @@ public:
     }
 
     void Update(SDL_Renderer* renderer, std::unique_ptr<AssetStore>& assetStore) {
-        for (auto entity: GetEntities()) {
-            const auto& transformComponent = entity.GetComponent<TransformComponent>();
-            auto& spriteComponent = entity.GetComponent<SpriteComponent>();
+        // sort all the entities of our system by their zIndex
+        struct RenderableEntity {
+            TransformComponent transformComponent;
+            SpriteComponent spriteComponent;
+        };
+        std::vector<RenderableEntity> renderableEntities;
+        for (auto entity : GetEntities()) {
+            RenderableEntity renderableEntity = {
+                    .transformComponent = entity.GetComponent<TransformComponent>(),
+                    .spriteComponent = entity.GetComponent<SpriteComponent>()
+            };
+            renderableEntities.emplace_back(renderableEntity);
+        }
+        std::sort(
+                renderableEntities.begin(),
+                renderableEntities.end(),
+                [](const RenderableEntity& a, const RenderableEntity& b) {
+                    return a.spriteComponent.zIndex < b.spriteComponent.zIndex;
+                }
+        );
+        
+        for (auto entity: renderableEntities) {
+            const auto spriteComponent = entity.spriteComponent;
+            const auto transformComponent = entity.transformComponent;
 
             // set the source rect for the sprite texture
 

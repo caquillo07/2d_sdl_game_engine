@@ -13,12 +13,21 @@ struct SpriteComponent {
 
     int width;
     int height;
+    int zIndex;
     SDL_Rect srcRect;
 
-    SpriteComponent(std::string assetID = "", int width = 0, int height = 0, int sourceRectX = 0, int sourceRectY = 0) :
+    SpriteComponent(
+            std::string assetID = "", 
+            int width = 0,
+            int height = 0,
+            int zIndex = 0,
+            int sourceRectX = 0,
+            int sourceRectY = 0
+    ) :
             textureAssetID(assetID),
             width(width),
             height(height),
+            zIndex(zIndex),
             srcRect(SDL_Rect{sourceRectX, sourceRectY, width, height}) {
 
     }

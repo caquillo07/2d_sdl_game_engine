@@ -19,7 +19,7 @@ public:
 
     void ClearAssets();
     void AddTexture(SDL_Renderer* renderer, const std::string& assetID, const std::string& filePath);
-    SDL_Texture* GetTexture(std::string& assetID);
+    SDL_Texture* GetTexture(const std::string& assetID);
 };
 
 #endif //INC_2D_SDL_GAME_ENGINE_ASSET_STORE_H
