@@ -2,3 +2,4 @@ build
 assets/*
 game_engine
 main
+.idea

@@ -16,9 +16,13 @@
 #include "../logger/logger.h"
 #include "./game.h"
 
-Game::Game()
-    : isRunning(false), millisecondsPreviousFrame(0), windowWidth(0),
-      windowHeight(0) {
+Game::Game() :
+        isRunning(false),
+        millisecondsPreviousFrame(0),
+        windowWidth(0),
+        windowHeight(0) {
+   
+    this->registry = std::make_unique<Registry>();
     Logger::Log("Game constructor");
 }
 
@@ -36,12 +40,16 @@ void Game::Run() {
     }
 }
 
-void Game::Setup() {}
+void Game::Setup() {
+    Entity tank = registry->CreateEntity();
+    Entity truck = registry->CreateEntity();
+    
+}
 
 void Game::Update() {
     // Wait until 16ms has elapsed since last frame
     int timeToWait =
-        MILLIS_PER_FRAME - (SDL_GetTicks() - millisecondsPreviousFrame);
+            MILLIS_PER_FRAME - (SDL_GetTicks() - millisecondsPreviousFrame);
     if (timeToWait > 0 && timeToWait <= MILLIS_PER_FRAME) {
         SDL_Delay(timeToWait);
     }
@@ -51,9 +59,9 @@ void Game::Update() {
     millisecondsPreviousFrame = SDL_GetTicks();
 
     // print FPS
-    Logger::Log("FPS: " + std::to_string(1.0f / deltaTime));
+//    Logger::Log("FPS: " + std::to_string(1.0f / deltaTime));
     char buffer[50];
-    snprintf(buffer, sizeof(buffer), "FPS: %d", (int)ceil(1.0f / deltaTime));
+    snprintf(buffer, sizeof(buffer), "FPS: %d", (int) ceil(1.0f / deltaTime));
     SDL_SetWindowTitle(this->window, buffer);
 }
 
@@ -78,8 +86,9 @@ void Game::Initialize() {
 
     SDL_DisplayMode displayMode;
     if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
-        Logger::Err("failed to get current display mode: " +
-                    std::string(SDL_GetError()));
+        Logger::Err(
+                "failed to get current display mode: " +
+                std::string(SDL_GetError()));
         return;
     }
     // this->windowWidth = displayMode.w;
@@ -87,9 +96,11 @@ void Game::Initialize() {
     this->windowWidth = 800;  // displayMode.w;
     this->windowHeight = 600; // displayMode.h;
 
-    this->window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED,
-                                    SDL_WINDOWPOS_CENTERED, this->windowWidth,
-                                    this->windowHeight, SDL_WINDOW_RESIZABLE);
+    this->window = SDL_CreateWindow(
+            NULL, SDL_WINDOWPOS_CENTERED,
+            SDL_WINDOWPOS_CENTERED, this->windowWidth,
+            this->windowHeight, SDL_WINDOW_RESIZABLE
+    );
     if (!window) {
         Logger::Err("Error creating SDL window");
         return;
@@ -99,7 +110,8 @@ void Game::Initialize() {
     // SDL2 should know to use dedicated GPU by default, but in case we wanted
     // to be explicit, this is how.
     this->renderer = SDL_CreateRenderer(
-        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+            window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+    );
     if (!renderer) {
         Logger::Err("Error creating SDL renderer");
         return;
@@ -114,14 +126,13 @@ void Game::ProcessInput() {
     SDL_Event sdlEvent;
     while (SDL_PollEvent(&sdlEvent)) {
         switch (sdlEvent.type) {
-        case SDL_QUIT:
-            this->isRunning = false;
-            break;
-        case SDL_KEYDOWN:
-            if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
-                this->isRunning = false;
-            }
-            break;
+            case SDL_QUIT:this->isRunning = false;
+                break;
+            case SDL_KEYDOWN:
+                if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
+                    this->isRunning = false;
+                }
+                break;
         }
     }
 }

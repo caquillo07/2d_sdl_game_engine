@@ -1,7 +1,6 @@
 #include "./game/game.h"
-#include <iostream>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     Game game;
 
     game.Initialize();

@@ -3,20 +3,22 @@
 
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
-
 #include <glm/glm.hpp>
+
+#include "../ecs/ecs.h"
 
 const int FPS = 60;
 const int MILLIS_PER_FRAME = 1000 / FPS;
 
 class Game {
-  private:
+private:
     bool isRunning;
     int millisecondsPreviousFrame;
-    SDL_Window *window;
-    SDL_Renderer *renderer;
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+    std::unique_ptr<Registry> registry;
 
-  public:
+public:
     Game();
     ~Game();
 
