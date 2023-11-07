@@ -14,7 +14,7 @@ struct AnimationComponent {
     bool shouldLoop;
     int startTime;
 
-    AnimationComponent(
+    explicit AnimationComponent(
             int numFrames = 1,
             int frameRateSpeed = 1,
             bool loop = true

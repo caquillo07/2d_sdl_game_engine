@@ -1,17 +1,13 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_events.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_render.h>
-#include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_video.h>
 
 #include <charconv>
 #include <fstream>
 #include <cstdio>
 #include <iostream>
-#include <ostream>
 
 #include "../ecs/ecs.h"
 #include "../components/transform_component.h"
@@ -21,7 +17,6 @@
 #include "../systems/animation_system.h"
 #include "../systems/movement_system.h"
 #include "../systems/render_system.h"
-#include "../logger/logger.h"
 #include "./game.h"
 
 Game::Game() :
@@ -112,9 +107,9 @@ void Game::LoadLevel(int levelNumber) {
     chopper.AddComponent<RigidBodyComponent>(glm::vec2(0.f, 0.f));
     chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
-    
+
     Entity radar = registry->CreateEntity();
-    radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 64*2, 10.0), glm::vec2(2.f, 2.f), 0.f);
+    radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 64 * 2, 10.0), glm::vec2(2.f, 2.f), 0.f);
     radar.AddComponent<RigidBodyComponent>(glm::vec2(0.f, 0.f));
     radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 2);
     radar.AddComponent<AnimationComponent>(8, 5, true);
@@ -122,7 +117,7 @@ void Game::LoadLevel(int levelNumber) {
     Entity tank = registry->CreateEntity();
     tank.AddComponent<TransformComponent>(glm::vec2(10.f, 10.f), glm::vec2(2.f, 2.f), 45.f);
     tank.AddComponent<RigidBodyComponent>(glm::vec2(50.f, 0.f));
-    tank.AddComponent<SpriteComponent>("tank-image",  32, 32, 2);
+    tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 2);
 
     Entity truck = registry->CreateEntity();
     truck.AddComponent<TransformComponent>(glm::vec2(10.f, 30.f), glm::vec2(2.f, 2.f), 0.f);
@@ -198,7 +193,7 @@ void Game::Initialize() {
     this->windowHeight = 20 * 32 * 2; // displayMode.h;
 
     this->window = SDL_CreateWindow(
-            NULL, SDL_WINDOWPOS_CENTERED,
+            nullptr, SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED, this->windowWidth,
             this->windowHeight, SDL_WINDOW_RESIZABLE
     );
