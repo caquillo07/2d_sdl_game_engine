@@ -38,19 +38,22 @@ Entity Registry::CreateEntity() {
         entityComponentSignatures.resize(entityID + 1);
     }
     Entity entity(entityID);
+    entity.registry = this;
     entitiesToCreate.insert(entity);
     Logger::Log("Entity created with ID = " + std::to_string(entityID));
     return entity;
 }
 
-void Registry::Update(){
+void Registry::Update() {
     for (auto& entity: entitiesToCreate) {
         AddEntityToSystems(entity);
-        
     }
     entitiesToCreate.clear();
-    
-    
+
+    for (auto& entity: entitiesToDestroy) {
+        DestroyEntity(entity);
+    }
+    entitiesToDestroy.clear();
 }
 
 void Registry::AddEntityToSystems(Entity entity) {
@@ -66,3 +69,4 @@ void Registry::AddEntityToSystems(Entity entity) {
     }
 }
 
+void Registry::DestroyEntity(Entity entity) {}

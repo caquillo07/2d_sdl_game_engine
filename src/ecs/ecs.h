@@ -45,6 +45,23 @@ public:
     bool operator !=(const Entity& other) const { return this->id != other.id; }
     bool operator <(const Entity& other) const { return this->id < other.id; }
     bool operator >(const Entity& other) const { return this->id > other.id; }
+
+    template<typename TComponent, typename ...TComponentArgs>
+    void AddComponent(TComponentArgs&& ...args);
+
+    template<typename TComponent>
+    void RemoveComponent();
+
+    template<typename TComponent>
+    bool HasComponent() const;
+
+    template<typename TComponent>
+    TComponent& GetComponent() const;
+
+    // hold a pointer to the entity's owner registry
+    // this is a cyclic dependency, but it's ok because this is a demo project.
+    // It is important to understand the risks here though
+    class Registry* registry;
 };
 
 // the system processes entities that contain a specific signature
@@ -108,7 +125,7 @@ public:
         data[index] = object;
     }
 
-    T& Get(int index) const {
+    T& Get(int index) {
         return static_cast<T&>(data[index]);
     }
 
@@ -179,6 +196,26 @@ public:
     void AddEntityToSystems(Entity entity);
 };
 
+template<typename TComponent, typename ...TComponentArgs>
+void Entity::AddComponent(TComponentArgs&& ...args) {
+    this->registry->AddComponent<TComponent>(*this, std::forward<TComponentArgs>(args)...);
+}
+
+template<typename TComponent>
+void Entity::RemoveComponent() {
+    this->registry->RemoveComponent<TComponent>(*this);
+}
+
+template<typename TComponent>
+bool Entity::HasComponent() const {
+    return this->registry->HasComponent<TComponent>(*this);
+}
+
+template<typename TComponent>
+TComponent& Entity::GetComponent() const {
+    return this->registry->GetComponent<TComponent>(*this);
+}
+
 template<typename TComponent>
 void System::RequireComponent() {
     const auto componentID = Component<TComponent>::GetID();
@@ -224,6 +261,10 @@ void Registry::RemoveComponent(Entity entity) {
     const auto entityID = entity.GetID();
 
     entityComponentSignatures[entityID].set(componentID, false);
+    Logger::Log(
+            "Component ID = " + std::to_string(componentID) +
+            " removed from entity ID = " + std::to_string(entityID)
+    );
 }
 
 template<typename TComponent>
@@ -232,6 +273,18 @@ bool Registry::HasComponent(Entity entity) const {
     const auto entityID = entity.GetID();
 
     return entityComponentSignatures[entityID].test(componentID);
+}
+
+template<typename TComponent>
+TComponent& Registry::GetComponent(Entity entity) const {
+    const auto componentID = Component<TComponent>::GetID();
+    const auto entityID = entity.GetID();
+
+    std::shared_ptr <Pool<TComponent>> componentPool = std::static_pointer_cast<Pool<TComponent>>(
+            componentPools[componentID]
+    );
+
+    return componentPool->Get(entityID);
 }
 
 template<typename TSystem, typename ...TSystemArgs>

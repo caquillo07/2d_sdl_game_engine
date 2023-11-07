@@ -13,8 +13,9 @@
 #include <ostream>
 
 #include "../ecs/ecs.h"
-#include "../components/transforms_component.h"
+#include "../components/transform_component.h"
 #include "../components/rigid_body_component.h"
+#include "../systems/movement_system.h"
 #include "../logger/logger.h"
 #include "./game.h"
 
@@ -43,18 +44,23 @@ void Game::Run() {
 }
 
 void Game::Setup() {
+    // add a system that needs to be processed in our game
+    this->registry->AddSystem<MovementSystem>();
     Entity tank = registry->CreateEntity();
-    registry->AddComponent<TransformComponent>(
-            tank,
-            glm::vec2(10.f, 30.f),
-            glm::vec2(1.f, 1.f),
-            0.f
-    );
-    registry->AddComponent<RigidBodyComponent>(
-            tank,
-            glm::vec2(50.f, 0.f)
-    );
-    
+//    registry->AddComponent<TransformComponent>(
+//            tank,
+//            glm::vec2(10.f, 30.f),
+//            glm::vec2(1.f, 1.f),
+//            0.f
+//    );
+//    registry->AddComponent<RigidBodyComponent>(
+//            tank,
+//            glm::vec2(50.f, 0.f)
+//    );
+
+    tank.AddComponent<TransformComponent>(glm::vec2(10.f, 30.f), glm::vec2(1.f, 1.f), 0.f);
+    tank.AddComponent<RigidBodyComponent>(glm::vec2(50.f, 0.f));
+//    tank.RemoveComponent<TransformComponent>();
 }
 
 void Game::Update() {
@@ -69,6 +75,14 @@ void Game::Update() {
 
     millisecondsPreviousFrame = SDL_GetTicks();
 
+    // Ask all systems to run
+    registry->GetSystem<MovementSystem>().Update(deltaTime);
+
+    // update the registry to process the entities that are waiting to be created/destroyed
+    registry->Update(deltaTime);
+
+
+    // **************************************************************************
     // print FPS
 //    Logger::Log("FPS: " + std::to_string(1.0f / deltaTime));
     char buffer[50];
