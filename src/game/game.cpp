@@ -15,7 +15,9 @@
 #include "../ecs/ecs.h"
 #include "../components/transform_component.h"
 #include "../components/rigid_body_component.h"
+#include "../components/sprite_component.h"
 #include "../systems/movement_system.h"
+#include "../systems/render_system.h"
 #include "../logger/logger.h"
 #include "./game.h"
 
@@ -46,21 +48,18 @@ void Game::Run() {
 void Game::Setup() {
     // add a system that needs to be processed in our game
     this->registry->AddSystem<MovementSystem>();
-    Entity tank = registry->CreateEntity();
-//    registry->AddComponent<TransformComponent>(
-//            tank,
-//            glm::vec2(10.f, 30.f),
-//            glm::vec2(1.f, 1.f),
-//            0.f
-//    );
-//    registry->AddComponent<RigidBodyComponent>(
-//            tank,
-//            glm::vec2(50.f, 0.f)
-//    );
+    this->registry->AddSystem<RenderSystem>();
 
+    Entity tank = registry->CreateEntity();
     tank.AddComponent<TransformComponent>(glm::vec2(10.f, 30.f), glm::vec2(1.f, 1.f), 0.f);
     tank.AddComponent<RigidBodyComponent>(glm::vec2(50.f, 0.f));
-//    tank.RemoveComponent<TransformComponent>();
+    tank.AddComponent<SpriteComponent>();
+    
+    Entity truck = registry->CreateEntity();
+    truck.AddComponent<TransformComponent>(glm::vec2(100.f, 30.f), glm::vec2(1.f, 1.f), 0.f);
+    truck.AddComponent<RigidBodyComponent>(glm::vec2(20.f, 50.f));
+    truck.AddComponent<SpriteComponent>();
+    
 }
 
 void Game::Update() {
@@ -79,7 +78,7 @@ void Game::Update() {
     registry->GetSystem<MovementSystem>().Update(deltaTime);
 
     // update the registry to process the entities that are waiting to be created/destroyed
-    registry->Update(deltaTime);
+    registry->Update();
 
 
     // **************************************************************************
@@ -93,6 +92,9 @@ void Game::Update() {
 void Game::Render() {
     SDL_SetRenderDrawColor(this->renderer, 21, 21, 21, 255);
     SDL_RenderClear(this->renderer);
+    
+    // invoke all systems that need to render
+    registry->GetSystem<RenderSystem>().Update(this->renderer);
 
     SDL_RenderPresent(this->renderer);
 }
