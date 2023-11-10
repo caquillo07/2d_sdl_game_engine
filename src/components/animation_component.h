@@ -15,16 +15,16 @@ struct AnimationComponent {
     int startTime;
 
     explicit AnimationComponent(
-            int numFrames = 1,
-            int frameRateSpeed = 1,
-            bool loop = true
+        const int numFrames = 1,
+        const int frameRateSpeed = 1,
+        const bool loop = true
     ) :
             numFrames(numFrames),
             currentFrame(1),
             frameRateSpeed(frameRateSpeed),
             shouldLoop(loop),
             startTime(0) {
-        this->startTime = SDL_GetTicks();
+        this->startTime = static_cast<int>(SDL_GetTicks());
     }
 };
 

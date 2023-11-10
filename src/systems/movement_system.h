@@ -13,7 +13,7 @@ class MovementSystem: public System { //: public System {
         RequireComponent<RigidBodyComponent>();
     }
 
-    void Update(float deltaTime) {
+    void Update(const float deltaTime) const {
         for (auto entity : GetEntities()) {
             auto& transformComponent = entity.GetComponent<TransformComponent>();
             const auto& rigidBodyComponent = entity.GetComponent<RigidBodyComponent>();

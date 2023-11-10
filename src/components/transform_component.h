@@ -9,9 +9,9 @@ struct TransformComponent {
     double rotation;
 
     TransformComponent(
-            glm::vec2 position = glm::vec2(0, 0),
-            glm::vec2 scale = glm::vec2(1, 1),
-            double rotation = 0.0f
+        const glm::vec2 position = glm::vec2(0, 0),
+        const glm::vec2 scale = glm::vec2(1, 1),
+        const double rotation = 0.0f
     ) :
             position(position),
             scale(scale),

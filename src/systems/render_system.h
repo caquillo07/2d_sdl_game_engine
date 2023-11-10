@@ -13,7 +13,6 @@
 #include "../ecs/ecs.h"
 #include "../components/transform_component.h"
 #include "../components/sprite_component.h"
-#include "../logger/logger.h"
 
 class RenderSystem : public System { //: public System {
 public:
@@ -22,7 +21,7 @@ public:
         RequireComponent<SpriteComponent>();
     }
 
-    void Update(SDL_Renderer* renderer, std::unique_ptr<AssetStore>& assetStore) {
+    void Update(SDL_Renderer* renderer, std::unique_ptr<AssetStore>& assetStore) const {
         // sort all the entities of our system by their zIndex
         struct RenderableEntity {
             TransformComponent transformComponent;
@@ -44,7 +43,7 @@ public:
                 }
         );
         
-        for (auto entity: renderableEntities) {
+        for (const auto& entity: renderableEntities) {
             const auto spriteComponent = entity.spriteComponent;
             const auto transformComponent = entity.transformComponent;
 

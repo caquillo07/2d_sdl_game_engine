@@ -5,7 +5,6 @@
 #ifndef INC_2D_SDL_GAME_ENGINE_SPRITE_COMPONENT_H
 #define INC_2D_SDL_GAME_ENGINE_SPRITE_COMPONENT_H
 
-#include <SDL2/SDL_render.h>
 #include <string>
 
 struct SpriteComponent {
@@ -17,12 +16,12 @@ struct SpriteComponent {
     SDL_Rect srcRect;
 
     SpriteComponent(
-            std::string assetID = "", 
-            int width = 0,
-            int height = 0,
-            int zIndex = 0,
-            int sourceRectX = 0,
-            int sourceRectY = 0
+            std::string assetID = "",
+            const int width = 0,
+            const int height = 0,
+            const int zIndex = 0,
+            const int sourceRectX = 0,
+            const int sourceRectY = 0
     ) :
             textureAssetID(assetID),
             width(width),

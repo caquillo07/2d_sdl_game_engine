@@ -27,12 +27,12 @@ public:
 
     void Initialize();
     void Run();
-    void LoadLevel(int levelNumber);
-    void Setup();
+    void LoadLevel(int levelNumber) const;
+    void Setup() const;
     void ProcessInput();
     void Update();
     void Render();
-    void Destroy();
+    void Destroy() const;
 
     int windowWidth;
     int windowHeight;

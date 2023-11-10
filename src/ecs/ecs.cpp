@@ -6,35 +6,36 @@
 int BaseComponent::nextID = 0;
 
 // Entity
-Entity::Entity(int id) : id(id) {}
+Entity::Entity(const int id) : id(id), registry(nullptr) {
+}
 
 int Entity::GetID() const { return this->id; }
 
 // Systems
-void System::AddEntity(Entity entity) { this->entities.push_back(entity); }
+void System::AddEntity(const Entity entity) { this->entities.push_back(entity); }
 
 void System::RemoveEntity(Entity entity) {
     // I hate this, next time use a boring for loop
     this->entities.erase(
-            std::remove_if(
-                    entities.begin(), entities.end(),
-                    [&entity](Entity e) {
-                        return e == entity;
-                    }
-            ),
-            entities.end()
+        std::remove_if(
+            entities.begin(), entities.end(),
+            [&entity](Entity e) {
+                return e == entity;
+            }
+        ),
+        entities.end()
     );
 }
 
-std::vector <Entity> System::GetEntities() const { return this->entities; }
+std::vector<Entity> System::GetEntities() const { return this->entities; }
 
-const Signature &System::GetComponentSignature() const {
+const Signature& System::GetComponentSignature() const {
     return this->componentSignature;
 }
 
 Entity Registry::CreateEntity() {
-    int entityID = numEntities++;
-    if (entityID >= (int)entityComponentSignatures.size()) {
+    const int entityID = numEntities++;
+    if (entityID >= static_cast<int>(entityComponentSignatures.size())) {
         entityComponentSignatures.resize(entityID + 1);
     }
     Entity entity(entityID);
@@ -56,17 +57,20 @@ void Registry::Update() {
     entitiesToDestroy.clear();
 }
 
-void Registry::AddEntityToSystems(Entity entity) {
+void Registry::AddEntityToSystems(const Entity entity) const {
     const auto entityID = entity.GetID();
     const auto& entityComponentSignature = entityComponentSignatures[entityID];
-    
+
     for (auto& system: systems) {
         const auto& systemComponentSignature = system.second->GetComponentSignature();
-        bool isInterested = (entityComponentSignature & systemComponentSignature) == systemComponentSignature;
+        const bool isInterested = (entityComponentSignature & systemComponentSignature) == systemComponentSignature;
         if (isInterested) {
             system.second->AddEntity(entity);
         }
     }
 }
 
-void Registry::DestroyEntity(Entity entity) {}
+void Registry::DestroyEntity(Entity entity) {
+}
+void Registry::AddEntityToDestroy(Entity entity) {
+}

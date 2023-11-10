@@ -17,7 +17,7 @@ AssetStore::~AssetStore() {
 }
 
 void AssetStore::ClearAssets() {
-    for (auto& texture: textures) {
+    for (const auto& texture: textures) {
         SDL_DestroyTexture(texture.second);
     }
     textures.clear();

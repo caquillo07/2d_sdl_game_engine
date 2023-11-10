@@ -4,7 +4,6 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
 
-#include <charconv>
 #include <fstream>
 #include <cstdio>
 #include <iostream>
@@ -19,12 +18,12 @@
 #include "../systems/render_system.h"
 #include "./game.h"
 
-Game::Game() :
-        isRunning(false),
-        millisecondsPreviousFrame(0),
-        windowWidth(0),
-        windowHeight(0) {
-
+Game::Game() : isRunning(false),
+               millisecondsPreviousFrame(0),
+               window(nullptr),
+               renderer(nullptr),
+               windowWidth(0),
+               windowHeight(0) {
     this->registry = std::make_unique<Registry>();
     this->assetStore = std::make_unique<AssetStore>();
     Logger::Log("Game constructor");
@@ -44,7 +43,7 @@ void Game::Run() {
     }
 }
 
-void Game::LoadLevel(int levelNumber) {
+void Game::LoadLevel(int levelNumber) const {
     // todo(hector) - implement
 
     // add a system that needs to be processed in our game
@@ -63,17 +62,17 @@ void Game::LoadLevel(int levelNumber) {
 
     // ugly, and does not check errors, but it works for now
     // Load the tilemap
-    int tileSize = 32;
-    double tileScale = 2.0;
-    int mapNumCols = 25;
-    int mapNumRows = 20;
 
     std::fstream mapFile;
     mapFile.open("./assets/tilemaps/jungle.map");
     std::cout << mapFile.is_open();
 
+    int tileSize = 32;
+    int mapNumRows = 20;
     for (int y = 0; y < mapNumRows; y++) {
+        int mapNumCols = 25;
         for (int x = 0; x < mapNumCols; x++) {
+            double tileScale = 2.0;
             char ch;
             mapFile.get(ch);
             int srcRectY = std::atoi(&ch) * tileSize;
@@ -83,20 +82,20 @@ void Game::LoadLevel(int levelNumber) {
 
             Entity tile = registry->CreateEntity();
             tile.AddComponent<TransformComponent>(
-                    glm::vec2(
-                            x * (tileScale * tileSize),
-                            y * (tileScale * tileSize)
-                    ),
-                    glm::vec2(tileScale, tileScale),
-                    0.0
+                glm::vec2(
+                    x * (tileScale * tileSize),
+                    y * (tileScale * tileSize)
+                ),
+                glm::vec2(tileScale, tileScale),
+                0.0
             );
             tile.AddComponent<SpriteComponent>(
-                    "tilemap-image",
-                    tileSize,
-                    tileSize,
-                    0,
-                    srcRectX,
-                    srcRectY
+                "tilemap-image",
+                tileSize,
+                tileSize,
+                0,
+                srcRectX,
+                srcRectY
             );
         }
     }
@@ -124,21 +123,22 @@ void Game::LoadLevel(int levelNumber) {
     truck.AddComponent<RigidBodyComponent>(glm::vec2(20.f, 50.f));
     truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
 }
-void Game::Setup() {
+void Game::Setup() const {
     LoadLevel(1);
 }
 
 void Game::Update() {
     // Wait until 16ms has elapsed since last frame
-    int timeToWait =
-            MILLIS_PER_FRAME - (SDL_GetTicks() - millisecondsPreviousFrame);
+    const int timeToWait =
+            MILLIS_PER_FRAME - (static_cast<int>(SDL_GetTicks()) - millisecondsPreviousFrame);
     if (timeToWait > 0 && timeToWait <= MILLIS_PER_FRAME) {
         SDL_Delay(timeToWait);
     }
 
-    double deltaTime = (SDL_GetTicks() - millisecondsPreviousFrame) / 1000.0f;
+    const float deltaTime = (static_cast<float>(SDL_GetTicks()) - static_cast<float>(millisecondsPreviousFrame)) /
+                            1000.0f;
 
-    millisecondsPreviousFrame = SDL_GetTicks();
+    millisecondsPreviousFrame = static_cast<int>(SDL_GetTicks());
 
     // Ask all systems to run
     registry->GetSystem<MovementSystem>().Update(deltaTime);
@@ -150,9 +150,9 @@ void Game::Update() {
 
     // **************************************************************************
     // print FPS
-//    Logger::Log("FPS: " + std::to_string(1.0f / deltaTime));
+    //    Logger::Log("FPS: " + std::to_string(1.0f / deltaTime));
     char buffer[50];
-    snprintf(buffer, sizeof(buffer), "FPS: %d", (int) ceil(1.0f / deltaTime));
+    snprintf(buffer, sizeof(buffer), "FPS: %d", static_cast<int>(ceil(1.0f / deltaTime)));
     SDL_SetWindowTitle(this->window, buffer);
 }
 
@@ -166,7 +166,7 @@ void Game::Render() {
     SDL_RenderPresent(this->renderer);
 }
 
-void Game::Destroy() {
+void Game::Destroy() const {
     SDL_DestroyRenderer(this->renderer);
     SDL_DestroyWindow(this->window);
     SDL_Quit();
@@ -181,21 +181,22 @@ void Game::Initialize() {
     SDL_DisplayMode displayMode;
     if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
         Logger::Err(
-                "failed to get current display mode: " +
-                std::string(SDL_GetError()));
+            "failed to get current display mode: " +
+            std::string(SDL_GetError())
+        );
         return;
     }
     // this->windowWidth = displayMode.w;
     // this->windowHeight = displayMode.h;
-//    this->windowWidth = 800;  // displayMode.w;
-//    this->windowHeight = 600; // displayMode.h;
-    this->windowWidth = 25 * 32 * 2;  // displayMode.w;
+    //    this->windowWidth = 800;  // displayMode.w;
+    //    this->windowHeight = 600; // displayMode.h;
+    this->windowWidth = 25 * 32 * 2; // displayMode.w;
     this->windowHeight = 20 * 32 * 2; // displayMode.h;
 
     this->window = SDL_CreateWindow(
-            nullptr, SDL_WINDOWPOS_CENTERED,
-            SDL_WINDOWPOS_CENTERED, this->windowWidth,
-            this->windowHeight, SDL_WINDOW_RESIZABLE
+        nullptr, SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED, this->windowWidth,
+        this->windowHeight, SDL_WINDOW_RESIZABLE
     );
     if (!window) {
         Logger::Err("Error creating SDL window");
@@ -206,7 +207,7 @@ void Game::Initialize() {
     // SDL2 should know to use dedicated GPU by default, but in case we wanted
     // to be explicit, this is how.
     this->renderer = SDL_CreateRenderer(
-            window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
     );
     if (!renderer) {
         Logger::Err("Error creating SDL renderer");
@@ -222,13 +223,14 @@ void Game::ProcessInput() {
     SDL_Event sdlEvent;
     while (SDL_PollEvent(&sdlEvent)) {
         switch (sdlEvent.type) {
-            case SDL_QUIT:this->isRunning = false;
+            case SDL_QUIT: this->isRunning = false;
                 break;
             case SDL_KEYDOWN:
                 if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
                     this->isRunning = false;
                 }
                 break;
+            default: ;
         }
     }
 }

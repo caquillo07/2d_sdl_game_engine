@@ -18,16 +18,16 @@ public:
         RequireComponent<AnimationComponent>();
     }
 
-    void Update() {
+    void Update() const {
         for (auto entity: GetEntities()) {
             auto& animationComponent = entity.GetComponent<AnimationComponent>();
             auto& spriteComponent = entity.GetComponent<SpriteComponent>();
 
             animationComponent.currentFrame =
-                    ((SDL_GetTicks() - animationComponent.startTime) * animationComponent.frameRateSpeed / 1000) %
+                    ((static_cast<int>(SDL_GetTicks()) - animationComponent.startTime) * animationComponent.
+                     frameRateSpeed / 1000) %
                     animationComponent.numFrames;
             spriteComponent.srcRect.x = spriteComponent.width * animationComponent.currentFrame;
-
         }
     }
 };
