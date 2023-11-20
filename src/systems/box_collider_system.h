@@ -16,7 +16,7 @@ public:
         RequireComponent<TransformComponent>();
     }
 
-    void Update() {
+    void Update() const {
         auto entities = GetEntities();
         for (auto i = entities.begin(); i != entities.end(); ++i) {
             Entity entity = *i;
@@ -41,17 +41,16 @@ public:
                     otherCollider.height
                 )) {
                     Logger::Log("Collision detected");
-                    entity.Destroy();
-                    otherEntity.Destroy();
+                    // emit event
                 }
             }
         }
     }
 
-    bool CheckAABBCollision(
+    static bool CheckAABBCollision(
         const double aX, const double aY, const int aWidth, const int aHeight,
         const double bX, const double bY, const int bWidth, const int bHeight
-    ) const {
+    ) {
         return aX < bX + bWidth && aX + aWidth > bX && aY < bY + bHeight && aY + aHeight > bY;
     }
 };
