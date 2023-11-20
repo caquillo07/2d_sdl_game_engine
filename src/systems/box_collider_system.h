@@ -41,6 +41,8 @@ public:
                     otherCollider.height
                 )) {
                     Logger::Log("Collision detected");
+                    entity.Destroy();
+                    otherEntity.Destroy();
                 }
             }
         }

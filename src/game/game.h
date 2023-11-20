@@ -13,6 +13,8 @@ constexpr int MILLIS_PER_FRAME = 1000 / FPS;
 class Game {
 private:
     bool isRunning;
+    bool isDebug;
+    bool isFreezed;
     int millisecondsPreviousFrame;
     SDL_Window* window;
     SDL_Renderer* renderer;

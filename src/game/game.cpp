@@ -17,12 +17,14 @@
 #include "../systems/animation_system.h"
 #include "../systems/movement_system.h"
 #include "../systems/render_system.h"
+#include "../systems/render_collider_system.h"
 #include "../systems/box_collider_system.h"
 #include "./game.h"
 
 
-
 Game::Game() : isRunning(false),
+               isDebug(false),
+               isFreezed(false),
                millisecondsPreviousFrame(0),
                window(nullptr),
                renderer(nullptr),
@@ -55,6 +57,7 @@ void Game::LoadLevel(int levelNumber) const {
     this->registry->AddSystem<RenderSystem>();
     this->registry->AddSystem<AnimationSystem>();
     this->registry->AddSystem<BoxColliderSystem>();
+    this->registry->AddSystem<RenderColliderSystem>();
 
     // adding assets to asset store
     assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
@@ -107,7 +110,7 @@ void Game::LoadLevel(int levelNumber) const {
     mapFile.close();
 
     Entity chopper = registry->CreateEntity();
-    chopper.AddComponent<TransformComponent>(glm::vec2(10.f, 10.f), glm::vec2(2.f, 2.f), 0.f);
+    chopper.AddComponent<TransformComponent>(glm::vec2(10.f, 10.f), glm::vec2(1.f, 1.f), 0.f);
     chopper.AddComponent<RigidBodyComponent>(glm::vec2(0.f, 0.f));
     chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
@@ -119,17 +122,18 @@ void Game::LoadLevel(int levelNumber) const {
     radar.AddComponent<AnimationComponent>(8, 5, true);
 
     Entity tank = registry->CreateEntity();
-    tank.AddComponent<TransformComponent>(glm::vec2(500.f, 10.f), glm::vec2(2.f, 2.f), 45.f);
+    tank.AddComponent<TransformComponent>(glm::vec2(500.f, 10.f), glm::vec2(1.f, 1.f), 45.f);
     tank.AddComponent<RigidBodyComponent>(glm::vec2(-50.f, 0.f));
     tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 2);
     tank.AddComponent<BoxColliderComponent>(32, 32, glm::vec2(0));
 
     Entity truck = registry->CreateEntity();
-    truck.AddComponent<TransformComponent>(glm::vec2(10.f, 30.f), glm::vec2(2.f, 2.f), 0.f);
+    truck.AddComponent<TransformComponent>(glm::vec2(10.f, 30.f), glm::vec2(1.f, 1.f), 0.f);
     truck.AddComponent<RigidBodyComponent>(glm::vec2(50.f, 0.f));
     truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
     truck.AddComponent<BoxColliderComponent>(32, 32, glm::vec2(0));
 }
+
 void Game::Setup() const {
     LoadLevel(1);
 }
@@ -148,7 +152,9 @@ void Game::Update() {
     millisecondsPreviousFrame = static_cast<int>(SDL_GetTicks());
 
     // Ask all systems to run
-    registry->GetSystem<MovementSystem>().Update(deltaTime);
+    if (!this->isFreezed) {
+        registry->GetSystem<MovementSystem>().Update(deltaTime);
+    }
     registry->GetSystem<AnimationSystem>().Update();
     registry->GetSystem<BoxColliderSystem>().Update();
 
@@ -170,6 +176,9 @@ void Game::Render() {
 
     // invoke all systems that need to render
     registry->GetSystem<RenderSystem>().Update(this->renderer, this->assetStore);
+    if (this->isDebug) {
+        registry->GetSystem<RenderColliderSystem>().Update(this->renderer);
+    }
 
     SDL_RenderPresent(this->renderer);
 }
@@ -236,6 +245,12 @@ void Game::ProcessInput() {
             case SDL_KEYDOWN:
                 if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
                     this->isRunning = false;
+                }
+                if (sdlEvent.key.keysym.sym == SDLK_d) {
+                    this->isDebug = !this->isDebug;
+                }
+                if (sdlEvent.key.keysym.sym == SDLK_f) {
+                    this->isFreezed = !this->isFreezed;
                 }
                 break;
             default: ;

@@ -9,6 +9,9 @@ int BaseComponent::nextID = 0;
 Entity::Entity(const int id) : id(id), registry(nullptr) {
 }
 
+void Entity::Destroy() const {
+    registry->DestroyEntity(*this);
+}
 int Entity::GetID() const { return this->id; }
 
 // Systems
@@ -34,13 +37,22 @@ const Signature& System::GetComponentSignature() const {
 }
 
 Entity Registry::CreateEntity() {
-    const int entityID = numEntities++;
-    if (entityID >= static_cast<int>(entityComponentSignatures.size())) {
-        entityComponentSignatures.resize(entityID + 1);
+    int entityID;
+    if (this->freeIDs.empty()) {
+        entityID = numEntities++;
+        if (entityID >= static_cast<int>(entityComponentSignatures.size())) {
+            entityComponentSignatures.resize(entityID + 1);
+        }
+    } else {
+        // reuse an id from the list of recently destroyed entities
+        entityID = freeIDs.front();
+        freeIDs.pop_front();
     }
+
     Entity entity(entityID);
     entity.registry = this;
     entitiesToCreate.insert(entity);
+
     Logger::Log("Entity created with ID = " + std::to_string(entityID));
     return entity;
 }
@@ -52,9 +64,15 @@ void Registry::Update() {
     entitiesToCreate.clear();
 
     for (auto& entity: entitiesToDestroy) {
-        DestroyEntity(entity);
+        RemoveEntityFromSystems(entity);
+        entityComponentSignatures[entity.GetID()].reset();
+        this->freeIDs.push_back(entity.GetID());
     }
     entitiesToDestroy.clear();
+}
+
+void Registry::DestroyEntity(const Entity entity) {
+    this->entitiesToDestroy.insert(entity);
 }
 
 void Registry::AddEntityToSystems(const Entity entity) const {
@@ -70,7 +88,8 @@ void Registry::AddEntityToSystems(const Entity entity) const {
     }
 }
 
-void Registry::DestroyEntity(Entity entity) {
-}
-void Registry::AddEntityToDestroy(Entity entity) {
+void Registry::RemoveEntityFromSystems(const Entity entity) const {
+    for (const auto& system: systems) {
+        system.second->RemoveEntity(entity);
+    }
 }

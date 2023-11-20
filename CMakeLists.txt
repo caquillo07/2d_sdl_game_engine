@@ -431,4 +431,5 @@ add_executable(2d_sdl_game_engine
         src/systems/render_system.h
         src/main.cpp
         src/components/box_collider_component.h
-        src/systems/box_collider_system.h)
+        src/systems/box_collider_system.h
+        src/systems/render_collider_system.h)

@@ -2,6 +2,7 @@
 #define ECS_H
 
 #include <bitset>
+#include <deque>
 #include <vector>
 #include <unordered_map>
 #include <typeindex>
@@ -38,6 +39,7 @@ private:
 public:
     Entity(int id);
     Entity(const Entity& other) = default; // this actually calls the = operation under the hood
+    void Destroy() const;
     int GetID() const;
 
     Entity& operator =(const Entity& other) = default;
@@ -153,6 +155,7 @@ private:
 
     std::set<Entity> entitiesToCreate;
     std::set<Entity> entitiesToDestroy;
+    std::deque<int> freeIDs;
 
 public:
     Registry() = default;
@@ -163,7 +166,8 @@ public:
     // Entities
     Entity CreateEntity();
     void DestroyEntity(Entity entity);
-    void AddEntityToDestroy(Entity entity);
+    void RemoveEntityFromSystems(Entity entity) const;
+    void AddEntityToSystems(Entity entity) const;
 
     // Components
     template<typename TComponent, typename... TComponentArgs>
@@ -190,10 +194,6 @@ public:
 
     template<typename TSystem>
     bool HasSystem() const;
-
-
-    // entities
-    void AddEntityToSystems(Entity entity) const;
 };
 
 template<typename TComponent, typename... TComponentArgs>
