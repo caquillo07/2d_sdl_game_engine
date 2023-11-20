@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "../ecs/ecs.h"
+#include "../components/box_collider_component.h"
 #include "../components/transform_component.h"
 #include "../components/rigid_body_component.h"
 #include "../components/sprite_component.h"
@@ -16,7 +17,10 @@
 #include "../systems/animation_system.h"
 #include "../systems/movement_system.h"
 #include "../systems/render_system.h"
+#include "../systems/box_collider_system.h"
 #include "./game.h"
+
+
 
 Game::Game() : isRunning(false),
                millisecondsPreviousFrame(0),
@@ -50,6 +54,7 @@ void Game::LoadLevel(int levelNumber) const {
     this->registry->AddSystem<MovementSystem>();
     this->registry->AddSystem<RenderSystem>();
     this->registry->AddSystem<AnimationSystem>();
+    this->registry->AddSystem<BoxColliderSystem>();
 
     // adding assets to asset store
     assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
@@ -114,14 +119,16 @@ void Game::LoadLevel(int levelNumber) const {
     radar.AddComponent<AnimationComponent>(8, 5, true);
 
     Entity tank = registry->CreateEntity();
-    tank.AddComponent<TransformComponent>(glm::vec2(10.f, 10.f), glm::vec2(2.f, 2.f), 45.f);
-    tank.AddComponent<RigidBodyComponent>(glm::vec2(50.f, 0.f));
+    tank.AddComponent<TransformComponent>(glm::vec2(500.f, 10.f), glm::vec2(2.f, 2.f), 45.f);
+    tank.AddComponent<RigidBodyComponent>(glm::vec2(-50.f, 0.f));
     tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 2);
+    tank.AddComponent<BoxColliderComponent>(32, 32, glm::vec2(0));
 
     Entity truck = registry->CreateEntity();
     truck.AddComponent<TransformComponent>(glm::vec2(10.f, 30.f), glm::vec2(2.f, 2.f), 0.f);
-    truck.AddComponent<RigidBodyComponent>(glm::vec2(20.f, 50.f));
+    truck.AddComponent<RigidBodyComponent>(glm::vec2(50.f, 0.f));
     truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
+    truck.AddComponent<BoxColliderComponent>(32, 32, glm::vec2(0));
 }
 void Game::Setup() const {
     LoadLevel(1);
@@ -143,6 +150,7 @@ void Game::Update() {
     // Ask all systems to run
     registry->GetSystem<MovementSystem>().Update(deltaTime);
     registry->GetSystem<AnimationSystem>().Update();
+    registry->GetSystem<BoxColliderSystem>().Update();
 
     // update the registry to process the entities that are waiting to be created/destroyed
     registry->Update();

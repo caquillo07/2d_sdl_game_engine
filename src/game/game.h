@@ -3,14 +3,12 @@
 
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
-#include <glm/glm.hpp>
-#include <map>
 
 #include "../ecs/ecs.h"
 #include "../asset_store/asset_store.h"
 
-const int FPS = 60;
-const int MILLIS_PER_FRAME = 1000 / FPS;
+constexpr int FPS = 60;
+constexpr int MILLIS_PER_FRAME = 1000 / FPS;
 
 class Game {
 private:
