@@ -132,13 +132,13 @@ void Game::LoadLevel(int levelNumber) const {
     mapFile.close();
     mapHeight = mapNumRows * tileSize * tileScale;
     mapWidth = mapNumCols * tileSize * tileScale;
+    constexpr double MOVE_SPEED = 100.f;
 
     Entity chopper = registry->CreateEntity();
     chopper.AddComponent<TransformComponent>(glm::vec2(10.f, 10.f), glm::vec2(1.f, 1.f), 0.f);
     chopper.AddComponent<RigidBodyComponent>(glm::vec2(0.f, 0.f));
     chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
-# define  MOVE_SPEED 200.f
     chopper.AddComponent<KeywordControlledComponent>(
         glm::vec2(0.f, -MOVE_SPEED),
         glm::vec2(MOVE_SPEED, 0.f),
@@ -147,12 +147,15 @@ void Game::LoadLevel(int levelNumber) const {
     );
     chopper.AddComponent<CameraComponent>();
     chopper.AddComponent<HealthComponent>(100);
+    chopper.AddComponent<ProjectileEmitterComponent>(glm::vec2(150.0, 150.0), 0, 10000, 0, true);
+    
 
     Entity radar = registry->CreateEntity();
     radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 64 * 2, 10.0), glm::vec2(2.f, 2.f), 0.f);
     radar.AddComponent<RigidBodyComponent>(glm::vec2(0.f, 0.f));
     radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 2, true);
     radar.AddComponent<AnimationComponent>(8, 5, true);
+
 
     Entity tank = registry->CreateEntity();
     tank.AddComponent<TransformComponent>(glm::vec2(500.f, 10.f), glm::vec2(1.f, 1.f), 0.f);
@@ -167,6 +170,7 @@ void Game::LoadLevel(int levelNumber) const {
         false
     );
     tank.AddComponent<HealthComponent>(100);
+
 
     Entity truck = registry->CreateEntity();
     truck.AddComponent<TransformComponent>(glm::vec2(10.f, 30.f), glm::vec2(1.f, 1.f), 0.f);
@@ -206,6 +210,7 @@ void Game::Update() {
     // perform the subscription of the events
     registry->GetSystem<DamageSystem>().SubscribeToEvents(this->eventBus);
     registry->GetSystem<KeyboardControlSystem>().SubscribeToEvents(this->eventBus);
+    registry->GetSystem<ProjectileEmitSystem>().SubscribeToEvents(this->eventBus);
 
     // update the registry to process the entities that are waiting to be created/destroyed
     registry->Update();
