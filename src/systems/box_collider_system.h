@@ -8,6 +8,8 @@
 #include "../components/transform_component.h"
 #include "../components/box_collider_component.h"
 #include "../ecs/ecs.h"
+#include "../event_bus/event_bus.h"
+#include "../events/collision_event.h"
 
 class BoxColliderSystem : public System {
 public:
@@ -16,7 +18,7 @@ public:
         RequireComponent<TransformComponent>();
     }
 
-    void Update() const {
+    void Update(const std::unique_ptr<EventBus>& eventBus) const {
         auto entities = GetEntities();
         for (auto i = entities.begin(); i != entities.end(); ++i) {
             Entity entity = *i;
@@ -42,6 +44,7 @@ public:
                 )) {
                     Logger::Log("Collision detected");
                     // emit event
+                    eventBus->EmitEvent<CollisionEvent>(entity, otherEntity);
                 }
             }
         }

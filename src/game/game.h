@@ -6,6 +6,7 @@
 
 #include "../ecs/ecs.h"
 #include "../asset_store/asset_store.h"
+#include "../event_bus/event_bus.h"
 
 constexpr int FPS = 60;
 constexpr int MILLIS_PER_FRAME = 1000 / FPS;
@@ -20,6 +21,7 @@ private:
     SDL_Renderer* renderer;
     std::unique_ptr<Registry> registry;
     std::unique_ptr<AssetStore> assetStore;
+    std::unique_ptr<EventBus> eventBus;
 
 public:
     Game();

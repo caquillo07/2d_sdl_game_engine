@@ -432,4 +432,11 @@ add_executable(2d_sdl_game_engine
         src/main.cpp
         src/components/box_collider_component.h
         src/systems/box_collider_system.h
-        src/systems/render_collider_system.h)
+        src/systems/render_collider_system.h
+        src/events/collision_event.h
+        src/event_bus/event.h
+        src/event_bus/event_bus.h
+        src/systems/damage_system.h
+        src/systems/keyboard_control_system.h
+        src/events/key_pressed_event.h
+        src/components/keyword_controlled_component.h)

@@ -14,11 +14,14 @@
 #include "../components/rigid_body_component.h"
 #include "../components/sprite_component.h"
 #include "../components/animation_component.h"
+#include "../components/keyword_controlled_component.h"
 #include "../systems/animation_system.h"
 #include "../systems/movement_system.h"
 #include "../systems/render_system.h"
 #include "../systems/render_collider_system.h"
 #include "../systems/box_collider_system.h"
+#include "../systems/damage_system.h"
+#include "../systems/keyboard_control_system.h"
 #include "./game.h"
 
 
@@ -32,6 +35,8 @@ Game::Game() : isRunning(false),
                windowHeight(0) {
     this->registry = std::make_unique<Registry>();
     this->assetStore = std::make_unique<AssetStore>();
+    this->eventBus = std::make_unique<EventBus>();
+
     Logger::Log("Game constructor");
 }
 
@@ -58,11 +63,13 @@ void Game::LoadLevel(int levelNumber) const {
     this->registry->AddSystem<AnimationSystem>();
     this->registry->AddSystem<BoxColliderSystem>();
     this->registry->AddSystem<RenderColliderSystem>();
+    this->registry->AddSystem<DamageSystem>();
+    this->registry->AddSystem<KeyboardControlSystem>();
 
     // adding assets to asset store
     assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
     assetStore->AddTexture(renderer, "truck-image", "./assets/images/truck-ford-right.png");
-    assetStore->AddTexture(renderer, "chopper-image", "./assets/images/chopper.png");
+    assetStore->AddTexture(renderer, "chopper-image", "./assets/images/chopper-spritesheet.png");
     assetStore->AddTexture(renderer, "radar-image", "./assets/images/radar.png");
 
     // Load the tilemap
@@ -114,6 +121,12 @@ void Game::LoadLevel(int levelNumber) const {
     chopper.AddComponent<RigidBodyComponent>(glm::vec2(0.f, 0.f));
     chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
+    chopper.AddComponent<KeywordControlledComponent>(
+        glm::vec2(0.f, -200.f),
+        glm::vec2(200.f, 0.f),
+        glm::vec2(0.f, 200.f),
+        glm::vec2(-200.f, 0.f)
+    );
 
     Entity radar = registry->CreateEntity();
     radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 64 * 2, 10.0), glm::vec2(2.f, 2.f), 0.f);
@@ -151,16 +164,22 @@ void Game::Update() {
 
     millisecondsPreviousFrame = static_cast<int>(SDL_GetTicks());
 
+    // reset all event handlers for current frame
+    this->eventBus->Reset();
+
+    // perform the subscription of the events
+    registry->GetSystem<DamageSystem>().SubscribeToEvents(this->eventBus);
+    registry->GetSystem<KeyboardControlSystem>().SubscribeToEvents(this->eventBus);
+
+    // update the registry to process the entities that are waiting to be created/destroyed
+    registry->Update();
+
     // Ask all systems to run
     if (!this->isFreezed) {
         registry->GetSystem<MovementSystem>().Update(deltaTime);
     }
     registry->GetSystem<AnimationSystem>().Update();
-    registry->GetSystem<BoxColliderSystem>().Update();
-
-    // update the registry to process the entities that are waiting to be created/destroyed
-    registry->Update();
-
+    registry->GetSystem<BoxColliderSystem>().Update(this->eventBus);
 
     // **************************************************************************
     // print FPS
@@ -243,6 +262,7 @@ void Game::ProcessInput() {
             case SDL_QUIT: this->isRunning = false;
                 break;
             case SDL_KEYDOWN:
+                this->eventBus->EmitEvent<KeyPressedEvent>(sdlEvent.key.keysym.sym);
                 if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
                     this->isRunning = false;
                 }
