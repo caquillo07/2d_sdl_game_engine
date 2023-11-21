@@ -10,7 +10,7 @@
 #include "../event_bus/event_bus.h"
 #include "../events/collision_event.h"
 
-class DamageSystem: public System {
+class DamageSystem : public System {
 public:
     DamageSystem() {
         RequireComponent<BoxColliderComponent>();
@@ -21,12 +21,15 @@ public:
     }
 
     void OnCollision(CollisionEvent& e) {
-        Logger::Log("Collision detected between entities " + std::to_string(e.a.GetID()) + " and " + std::to_string(e.b.GetID()));
-        e.a.Destroy();
-        e.b.Destroy();
+        Logger::Log(
+            "Collision detected between entities " + std::to_string(e.a.GetID()) + " and " + std::to_string(e.b.GetID())
+        );
+        // e.a.Destroy();
+        // e.b.Destroy();
     }
 
-    void Update(){}
+    void Update() {
+    }
 };
 
 #endif //DAMAGE_SYSTEM_H

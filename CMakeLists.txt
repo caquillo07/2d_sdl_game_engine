@@ -441,4 +441,9 @@ add_executable(2d_sdl_game_engine
         src/events/key_pressed_event.h
         src/components/keyword_controlled_component.h
         src/components/camera_component.h
-        src/systems/camera_movement_system.h)
+        src/systems/camera_movement_system.h
+        src/components/projectile_emitter_component.h
+        src/systems/projectile_emit_system.h
+        src/components/health_component.h
+        src/components/projectile_component.h
+        src/systems/projectile_lifecycle_system.h)

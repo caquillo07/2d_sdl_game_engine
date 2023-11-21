@@ -50,8 +50,8 @@ public:
             // set the source rect for the sprite texture
 
             SDL_Rect destinationRect = {
-                    .x = static_cast<int>(transformComponent.position.x - camera.x),
-                    .y= static_cast<int>(transformComponent.position.y - camera.y),
+                    .x = static_cast<int>(transformComponent.position.x - (spriteComponent.isFixed ? 0 : camera.x)),
+                    .y= static_cast<int>(transformComponent.position.y - (spriteComponent.isFixed ? 0 : camera.y)),
                     .w =static_cast<int>(spriteComponent.width * transformComponent.scale.x),
                     .h = static_cast<int>(spriteComponent.height * transformComponent.scale.y)
             };

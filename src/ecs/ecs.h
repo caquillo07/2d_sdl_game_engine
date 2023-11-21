@@ -249,10 +249,10 @@ void Registry::AddComponent(const Entity entity, TComponentArgs&&... args) {
 
     entityComponentSignatures[entityID].set(componentID);
 
-    Logger::Log(
-        "Component ID = " + std::to_string(componentID) +
-        " added to entity ID = " + std::to_string(entityID)
-    );
+    // Logger::Log(
+    //     "Component ID = " + std::to_string(componentID) +
+    //     " added to entity ID = " + std::to_string(entityID)
+    // );
 }
 
 template<typename TComponent>
