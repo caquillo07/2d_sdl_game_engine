@@ -15,7 +15,9 @@
 #include "../components/sprite_component.h"
 #include "../components/animation_component.h"
 #include "../components/keyword_controlled_component.h"
+#include "../components/camera_component.h"
 #include "../systems/animation_system.h"
+#include "../systems/camera_movement_system.h"
 #include "../systems/movement_system.h"
 #include "../systems/render_system.h"
 #include "../systems/render_collider_system.h"
@@ -24,15 +26,18 @@
 #include "../systems/keyboard_control_system.h"
 #include "./game.h"
 
+int Game::windowWidth = 0;
+int Game::windowHeight = 0;
+int Game::mapWidth = 0;
+int Game::mapHeight = 0;
 
 Game::Game() : isRunning(false),
                isDebug(false),
                isFreezed(false),
                millisecondsPreviousFrame(0),
+               camera(SDL_Rect{}),
                window(nullptr),
-               renderer(nullptr),
-               windowWidth(0),
-               windowHeight(0) {
+               renderer(nullptr) {
     this->registry = std::make_unique<Registry>();
     this->assetStore = std::make_unique<AssetStore>();
     this->eventBus = std::make_unique<EventBus>();
@@ -65,6 +70,7 @@ void Game::LoadLevel(int levelNumber) const {
     this->registry->AddSystem<RenderColliderSystem>();
     this->registry->AddSystem<DamageSystem>();
     this->registry->AddSystem<KeyboardControlSystem>();
+    this->registry->AddSystem<CameraMovementSystem>();
 
     // adding assets to asset store
     assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
@@ -84,10 +90,10 @@ void Game::LoadLevel(int levelNumber) const {
 
     int tileSize = 32;
     int mapNumRows = 20;
+    int mapNumCols = 25;
+    double tileScale = 2.0;
     for (int y = 0; y < mapNumRows; y++) {
-        int mapNumCols = 25;
         for (int x = 0; x < mapNumCols; x++) {
-            double tileScale = 2.0;
             char ch;
             mapFile.get(ch);
             int srcRectY = std::atoi(&ch) * tileSize;
@@ -115,18 +121,22 @@ void Game::LoadLevel(int levelNumber) const {
         }
     }
     mapFile.close();
+    mapHeight = mapNumRows * tileSize * tileScale;
+    mapWidth = mapNumCols * tileSize * tileScale;
 
     Entity chopper = registry->CreateEntity();
     chopper.AddComponent<TransformComponent>(glm::vec2(10.f, 10.f), glm::vec2(1.f, 1.f), 0.f);
     chopper.AddComponent<RigidBodyComponent>(glm::vec2(0.f, 0.f));
     chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
+# define  MOVE_SPEED 200.f
     chopper.AddComponent<KeywordControlledComponent>(
-        glm::vec2(0.f, -200.f),
-        glm::vec2(200.f, 0.f),
-        glm::vec2(0.f, 200.f),
-        glm::vec2(-200.f, 0.f)
+        glm::vec2(0.f, -MOVE_SPEED),
+        glm::vec2(MOVE_SPEED, 0.f),
+        glm::vec2(0.f, MOVE_SPEED),
+        glm::vec2(-MOVE_SPEED, 0.f)
     );
+    chopper.AddComponent<CameraComponent>();
 
     Entity radar = registry->CreateEntity();
     radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 64 * 2, 10.0), glm::vec2(2.f, 2.f), 0.f);
@@ -180,6 +190,7 @@ void Game::Update() {
     }
     registry->GetSystem<AnimationSystem>().Update();
     registry->GetSystem<BoxColliderSystem>().Update(this->eventBus);
+    registry->GetSystem<CameraMovementSystem>().Update(this->camera);
 
     // **************************************************************************
     // print FPS
@@ -194,7 +205,7 @@ void Game::Render() {
     SDL_RenderClear(this->renderer);
 
     // invoke all systems that need to render
-    registry->GetSystem<RenderSystem>().Update(this->renderer, this->assetStore);
+    registry->GetSystem<RenderSystem>().Update(this->renderer, this->assetStore, this->camera);
     if (this->isDebug) {
         registry->GetSystem<RenderColliderSystem>().Update(this->renderer);
     }
@@ -224,10 +235,10 @@ void Game::Initialize() {
     }
     // this->windowWidth = displayMode.w;
     // this->windowHeight = displayMode.h;
-    //    this->windowWidth = 800;  // displayMode.w;
-    //    this->windowHeight = 600; // displayMode.h;
-    this->windowWidth = 25 * 32 * 2; // displayMode.w;
-    this->windowHeight = 20 * 32 * 2; // displayMode.h;
+    this->windowWidth = 800;  // displayMode.w;
+    this->windowHeight = 600; // displayMode.h;
+    // this->windowWidth = 25 * 32 * 2; // displayMode.w;
+    // this->windowHeight = 20 * 32 * 2; // displayMode.h;
 
     this->window = SDL_CreateWindow(
         nullptr, SDL_WINDOWPOS_CENTERED,
@@ -251,6 +262,11 @@ void Game::Initialize() {
     }
 
     // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+
+    this->camera.x = 0;
+    this->camera.y = 0;
+    this->camera.w = this->windowWidth;
+    this->camera.h = this->windowHeight;
 
     this->isRunning = true;
 }

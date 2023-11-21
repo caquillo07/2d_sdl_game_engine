@@ -439,4 +439,6 @@ add_executable(2d_sdl_game_engine
         src/systems/damage_system.h
         src/systems/keyboard_control_system.h
         src/events/key_pressed_event.h
-        src/components/keyword_controlled_component.h)
+        src/components/keyword_controlled_component.h
+        src/components/camera_component.h
+        src/systems/camera_movement_system.h)

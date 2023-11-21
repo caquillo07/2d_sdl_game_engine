@@ -17,8 +17,11 @@ private:
     bool isDebug;
     bool isFreezed;
     int millisecondsPreviousFrame;
+    
+    SDL_Rect camera;
     SDL_Window* window;
     SDL_Renderer* renderer;
+    
     std::unique_ptr<Registry> registry;
     std::unique_ptr<AssetStore> assetStore;
     std::unique_ptr<EventBus> eventBus;
@@ -36,8 +39,10 @@ public:
     void Render();
     void Destroy() const;
 
-    int windowWidth;
-    int windowHeight;
+    static int windowWidth;
+    static int windowHeight;
+    static int mapWidth;
+    static int mapHeight;
 };
 
 #endif // !GAME_H

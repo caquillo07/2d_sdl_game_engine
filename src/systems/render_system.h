@@ -21,7 +21,7 @@ public:
         RequireComponent<SpriteComponent>();
     }
 
-    void Update(SDL_Renderer* renderer, std::unique_ptr<AssetStore>& assetStore) const {
+    void Update(SDL_Renderer* renderer, std::unique_ptr<AssetStore>& assetStore, SDL_Rect& camera) const {
         // sort all the entities of our system by their zIndex
         struct RenderableEntity {
             TransformComponent transformComponent;
@@ -50,8 +50,8 @@ public:
             // set the source rect for the sprite texture
 
             SDL_Rect destinationRect = {
-                    .x = static_cast<int>(transformComponent.position.x),
-                    .y= static_cast<int>(transformComponent.position.y),
+                    .x = static_cast<int>(transformComponent.position.x - camera.x),
+                    .y= static_cast<int>(transformComponent.position.y - camera.y),
                     .w =static_cast<int>(spriteComponent.width * transformComponent.scale.x),
                     .h = static_cast<int>(spriteComponent.height * transformComponent.scale.y)
             };
