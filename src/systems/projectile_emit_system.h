@@ -22,9 +22,8 @@ class ProjectileEmitSystem : public System {
 private:
     void onSpacePressed(KeyPressedEvent& event) {
         if (event.key == SDLK_SPACE) {
-            Logger::Log("SPACE PRESSED");
             for (auto entity: GetEntities()) {
-                if (entity.HasComponent<CameraComponent>()) {
+                if (entity.HasTag("player")) {
                     const auto projectileEmitter = entity.GetComponent<ProjectileEmitterComponent>();
                     const auto transform = entity.GetComponent<TransformComponent>();
                     const auto rigidbody = entity.GetComponent<RigidBodyComponent>();
@@ -50,6 +49,7 @@ private:
 
                     // Create new projectile entity and add it to the world
                     Entity projectile = entity.registry->CreateEntity();
+                    projectile.Group("projectiles");
                     projectile.AddComponent<TransformComponent>(projectilePosition, glm::vec2(1.0, 1.0), 0.0);
                     projectile.AddComponent<RigidBodyComponent>(projectileVelocity);
                     projectile.AddComponent<SpriteComponent>("bullet-image", 4, 4, 4);
@@ -81,9 +81,10 @@ public:
             if (projectileEmitterComponent.frequency == 0) {
                 continue;
             }
-            
+
             if (static_cast<int>(SDL_GetTicks()) - projectileEmitterComponent.lastEmissionTime >
                 projectileEmitterComponent.frequency) {
+                Logger::Log("Emitting from entity: " + std::to_string(entities.GetID()));
                 glm::vec2 projectilePosition = transformComponent.position;
                 if (entities.HasComponent<SpriteComponent>()) {
                     const auto spriteComponent = entities.GetComponent<SpriteComponent>();
@@ -92,6 +93,7 @@ public:
                 }
 
                 Entity projectile = registry->CreateEntity();
+                projectile.Group("projectiles");
                 projectile.AddComponent<TransformComponent>(
                     projectilePosition,
                     glm::vec2(1.f, 1.f),
