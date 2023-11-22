@@ -127,42 +127,43 @@ Entity Registry::GetEntityByTag(const std::string& tag) const {
 }
 
 void Registry::RemoveEntityTag(Entity entity) {
-    auto taggedEntity = tagPerEntity.find(entity.GetID());
+    const auto taggedEntity = tagPerEntity.find(entity.GetID());
     if (taggedEntity != tagPerEntity.end()) {
-        auto tag = taggedEntity->second;
+        const auto tag = taggedEntity->second;
         entityPerTag.erase(tag);
         tagPerEntity.erase(taggedEntity);
     }
 }
 
 void Registry::GroupEntity(Entity entity, const std::string& group) {
-    Logger::Log("GroupEntity: " + group + " " + std::to_string(entity.GetID()));
     entitiesPerGroup.emplace(group, std::set<Entity>());
     entitiesPerGroup[group].emplace(entity);
     groupPerEntity.emplace(entity.GetID(), group);
 }
 
-bool Registry::EntityBelongsToGroup(Entity entity, const std::string& group) const {
-    for (const auto& iter : entitiesPerGroup) {
-        Logger::Log("EntityBelongsToGroup: [" + iter.first + ":" + std::to_string(iter.second.size()) + "]");
+bool Registry::EntityBelongsToGroup(const Entity entity, const std::string& group) const {
+    if (entitiesPerGroup.find(group) == entitiesPerGroup.end()) {
+        return false;
     }
-    Logger::Log("EntityBelongsToGroup: " + group);
     auto groupEntities = entitiesPerGroup.at(group);
     return groupEntities.find(entity.GetID()) != groupEntities.end();
 }
 
 std::vector<Entity> Registry::GetEntitiesByGroup(const std::string& group) const {
+    if (entitiesPerGroup.find(group) == entitiesPerGroup.end()) {
+        return {};
+    }
     auto& setOfEntities = entitiesPerGroup.at(group);
-    return std::vector<Entity>(setOfEntities.begin(), setOfEntities.end());
+    return { setOfEntities.begin(), setOfEntities.end() };
 }
 
-void Registry::RemoveEntityGroup(Entity entity) {
+void Registry::RemoveEntityGroup(const Entity entity) {
     // if in group, remove entity from group management
-    auto groupedEntity = groupPerEntity.find(entity.GetID());
+    const auto groupedEntity = groupPerEntity.find(entity.GetID());
     if (groupedEntity != groupPerEntity.end()) {
-        auto group = entitiesPerGroup.find(groupedEntity->second);
+        const auto group = entitiesPerGroup.find(groupedEntity->second);
         if (group != entitiesPerGroup.end()) {
-            auto entityInGroup = group->second.find(entity);
+            const auto entityInGroup = group->second.find(entity);
             if (entityInGroup != group->second.end()) {
                 group->second.erase(entityInGroup);
             }

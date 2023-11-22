@@ -39,12 +39,23 @@ private:
 
         Logger::Log("third if");
         if (a.BelongsToGroup("projectiles") && b.BelongsToGroup("enemies")) {
-            // TODO: OnProjectileHitsEnemy(...);
+            onProjectileHitsEnemy(a, b);
         }
 
         Logger::Log("fourth if");
         if (b.BelongsToGroup("projectiles") && a.BelongsToGroup("enemies")) {
-            // TODO: OnProjectileHitsEnemy(...);
+            onProjectileHitsEnemy(b, a);
+        }
+    }
+    void onProjectileHitsEnemy(Entity projectile, Entity enemy) {
+        const auto projectileComponent = projectile.GetComponent<ProjectileComponent>();
+        if (projectileComponent.isFriendly) {
+            auto& healthComponent = enemy.GetComponent<HealthComponent>();
+            healthComponent.healthPercentage -= projectileComponent.hitPercentDamage;
+            if (healthComponent.healthPercentage <= 0) {
+                enemy.Destroy();
+            }
+            projectile.Destroy();
         }
     }
 
