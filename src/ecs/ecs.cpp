@@ -85,6 +85,15 @@ void Registry::Update() {
     for (auto& entity: entitiesToDestroy) {
         RemoveEntityFromSystems(entity);
         entityComponentSignatures[entity.GetID()].reset();
+
+        // remove the entity from the component pools
+        for (const auto& pool: componentPools) {
+            if (!pool) {
+                continue;
+            }
+            pool->RemoveEntityFromPool(entity.GetID());
+        }
+
         this->freeIDs.push_back(entity.GetID());
 
         RemoveEntityTag(entity);
@@ -154,7 +163,7 @@ std::vector<Entity> Registry::GetEntitiesByGroup(const std::string& group) const
         return {};
     }
     auto& setOfEntities = entitiesPerGroup.at(group);
-    return { setOfEntities.begin(), setOfEntities.end() };
+    return {setOfEntities.begin(), setOfEntities.end()};
 }
 
 void Registry::RemoveEntityGroup(const Entity entity) {

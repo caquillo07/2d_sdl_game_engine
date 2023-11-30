@@ -27,22 +27,18 @@ private:
         const Entity b = event.b;
         Logger::Log("Collision event emitted: " + std::to_string(a.GetID()) + " and " + std::to_string(b.GetID()));
 
-        Logger::Log("first if");
         if (a.BelongsToGroup("projectiles") && b.HasTag("player")) {
             onProjectileHitsPlayer(a, b); // "a" is the projectile, "b" is the player
         }
 
-        Logger::Log("second if");
         if (b.BelongsToGroup("projectiles") && a.HasTag("player")) {
             onProjectileHitsPlayer(b, a); // "b" is the projectile, "a" is the player
         }
 
-        Logger::Log("third if");
         if (a.BelongsToGroup("projectiles") && b.BelongsToGroup("enemies")) {
             onProjectileHitsEnemy(a, b);
         }
 
-        Logger::Log("fourth if");
         if (b.BelongsToGroup("projectiles") && a.BelongsToGroup("enemies")) {
             onProjectileHitsEnemy(b, a);
         }

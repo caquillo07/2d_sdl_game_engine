@@ -273,15 +273,15 @@ void Game::Initialize() {
     }
     // this->windowWidth = displayMode.w;
     // this->windowHeight = displayMode.h;
-    this->windowWidth = 800; // displayMode.w;
-    this->windowHeight = 600; // displayMode.h;
+    windowWidth = 800; // displayMode.w;
+    windowHeight = 600; // displayMode.h;
     // this->windowWidth = 25 * 32 * 2; // displayMode.w;
     // this->windowHeight = 20 * 32 * 2; // displayMode.h;
 
     this->window = SDL_CreateWindow(
         nullptr, SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED, this->windowWidth,
-        this->windowHeight, SDL_WINDOW_RESIZABLE
+        SDL_WINDOWPOS_CENTERED, windowWidth,
+        windowHeight, SDL_WINDOW_RESIZABLE
     );
     if (!window) {
         Logger::Err("Error creating SDL window");
@@ -303,8 +303,8 @@ void Game::Initialize() {
 
     this->camera.x = 0;
     this->camera.y = 0;
-    this->camera.w = this->windowWidth;
-    this->camera.h = this->windowHeight;
+    this->camera.w = windowWidth;
+    this->camera.h = windowHeight;
 
     this->isRunning = true;
 }

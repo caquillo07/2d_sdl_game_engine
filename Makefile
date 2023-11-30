@@ -15,4 +15,4 @@ run: build
 	./$(BIN)
 
 clean:
-	rm -rf build
+	rm -rf build/*
