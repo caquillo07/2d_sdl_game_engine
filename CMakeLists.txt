@@ -21,6 +21,11 @@ include_directories(src/game)
 include_directories(src/logger)
 include_directories(src/systems)
 
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+
+target_link_libraries(2d_sdl_game_engine ${SDL2_LIBRARIES})
+
 add_executable(2d_sdl_game_engine
         libs/glm/detail/_features.hpp
         libs/glm/detail/_fixes.hpp
