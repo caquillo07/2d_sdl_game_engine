@@ -12,6 +12,7 @@
 #include "../components/sprite_component.h"
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 class RenderHeathBarSystem : public System {
 public:
@@ -41,8 +42,8 @@ public:
 
             constexpr int healthBarWidth = 15;
             constexpr int healthBarHeight = 3;
-            auto healthBarPosX = transform.position.x + sprite.width * transform.scale.x - camera.x;
-            auto healthBarPosY = transform.position.y - camera.y;
+            const auto healthBarPosX = transform.position.x + sprite.width * transform.scale.x - camera.x;
+            const auto healthBarPosY = transform.position.y - camera.y;
             SDL_Rect healthBarPosition = {
                 static_cast<int>(healthBarPosX),
                 static_cast<int>(healthBarPosY),
@@ -64,7 +65,7 @@ public:
 
             int labelWidth = 0;
             int labelHeight = 0;
-            SDL_QueryTexture(texture, NULL, NULL, &labelWidth, &labelHeight);
+            SDL_QueryTexture(texture, nullptr, nullptr, &labelWidth, &labelHeight);
             SDL_Rect healthBarTextRect = {
                 static_cast<int>(healthBarPosX),
                 static_cast<int>(healthBarPosY) + 5,
@@ -72,7 +73,7 @@ public:
                 labelHeight
             };
 
-            SDL_RenderCopy(renderer, texture, NULL, &healthBarTextRect);
+            SDL_RenderCopy(renderer, texture, nullptr, &healthBarTextRect);
             SDL_DestroyTexture(texture);
         }
     }

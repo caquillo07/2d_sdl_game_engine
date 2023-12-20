@@ -1,12 +1,15 @@
+#include <cstdio>
+#include <fstream>
+#include <iostream>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
-
-#include <cstdio>
-#include <fstream>
-#include <iostream>
+#include <imgui/imgui.h>
+#include <imgui/imgui_sdl.h>
+#include <imgui/imgui_impl_sdl.h>
 
 #include "./game.h"
 #include "../components/animation_component.h"
@@ -32,6 +35,7 @@
 #include "../systems/render_system.h"
 #include "../systems/render_text_system.h"
 #include "../systems/render_health_bar_system.h"
+#include "../systems/render_gui_system.h"
 
 
 int Game::windowWidth = 0;
@@ -81,6 +85,7 @@ void Game::LoadLevel(int levelNumber) const {
     this->registry->AddSystem<ProjectileLifecycleSystem>();
     this->registry->AddSystem<RenderTextSystem>();
     this->registry->AddSystem<RenderHeathBarSystem>();
+    this->registry->AddSystem<RenderGUISystem>();
 
     // adding assets to asset store
     assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
@@ -272,12 +277,15 @@ void Game::Render() {
     );
     if (this->isDebug) {
         registry->GetSystem<RenderColliderSystem>().Update(this->renderer, this->camera);
+        registry->GetSystem<RenderGUISystem>().Update(registry, camera);
     }
 
     SDL_RenderPresent(this->renderer);
 }
 
 void Game::Destroy() const {
+    ImGuiSDL::Deinitialize();
+    ImGui::DestroyContext();
     SDL_DestroyRenderer(this->renderer);
     SDL_DestroyWindow(this->window);
     SDL_Quit();
@@ -330,6 +338,11 @@ void Game::Initialize() {
         return;
     }
 
+    // Initialize the ImGui context
+    ImGui::CreateContext();
+    ImGuiSDL::Initialize(renderer, windowWidth, windowHeight);
+
+
     // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 
     this->camera.x = 0;
@@ -343,6 +356,15 @@ void Game::Initialize() {
 void Game::ProcessInput() {
     SDL_Event sdlEvent;
     while (SDL_PollEvent(&sdlEvent)) {
+        // ImGui SDL Input
+        ImGui_ImplSDL2_ProcessEvent(&sdlEvent);
+        ImGuiIO& io = ImGui::GetIO();
+        int mouseX, mouseY;
+        const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
+        io.MousePos = ImVec2(mouseX, mouseY);
+        io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
+        io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+
         switch (sdlEvent.type) {
             case SDL_QUIT: this->isRunning = false;
                 break;
@@ -351,7 +373,7 @@ void Game::ProcessInput() {
                 if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
                     this->isRunning = false;
                 }
-                if (sdlEvent.key.keysym.sym == SDLK_d) {
+                if (sdlEvent.key.keysym.sym == SDLK_F1) {
                     this->isDebug = !this->isDebug;
                 }
                 if (sdlEvent.key.keysym.sym == SDLK_f) {

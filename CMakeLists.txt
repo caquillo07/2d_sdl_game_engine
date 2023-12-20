@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.7)
 project(2d_sdl_game_engine)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 include_directories(libs)
 include_directories(libs/glm)
@@ -21,11 +21,13 @@ include_directories(src/game)
 include_directories(src/logger)
 include_directories(src/systems)
 
+# SDL2
 find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIRS})
+find_package(SDL2_image REQUIRED)
+find_package(SDL2_ttf REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_IMAGE_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS})
 
-target_link_libraries(2d_sdl_game_engine ${SDL2_LIBRARIES})
-
+# files
 add_executable(2d_sdl_game_engine
         libs/glm/detail/_features.hpp
         libs/glm/detail/_fixes.hpp
@@ -451,4 +453,10 @@ add_executable(2d_sdl_game_engine
         src/systems/projectile_emit_system.h
         src/components/health_component.h
         src/components/projectile_component.h
-        src/systems/projectile_lifecycle_system.h)
+        src/systems/projectile_lifecycle_system.h
+        src/systems/render_gui_system.h
+        libs/imgui/imgui_impl_sdl.cpp
+)
+
+target_link_libraries(2d_sdl_game_engine ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES})
+
