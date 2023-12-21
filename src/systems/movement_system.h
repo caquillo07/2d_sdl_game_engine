@@ -24,10 +24,10 @@ public:
             transformComponent.position += rigidBodyComponent.velocity * deltaTime;
             // Prevent the main player from moving outside the map boundaries
             if (entity.HasTag("player")) {
-                int paddingLeft = 10;
-                int paddingTop = 10;
-                int paddingRight = 50;
-                int paddingBottom = 50;
+                constexpr int paddingLeft = 10;
+                constexpr int paddingTop = 10;
+                constexpr int paddingRight = 50;
+                constexpr int paddingBottom = 50;
                 transformComponent.position.x = transformComponent.position.x < paddingLeft
                                                     ? paddingLeft
                                                     : transformComponent.position.x;
