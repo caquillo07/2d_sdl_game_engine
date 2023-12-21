@@ -42,7 +42,7 @@ public:
                     return a.spriteComponent.zIndex < b.spriteComponent.zIndex;
                 }
         );
-        
+
         for (const auto& entity: renderableEntities) {
             const auto spriteComponent = entity.spriteComponent;
             const auto transformComponent = entity.transformComponent;
@@ -63,7 +63,7 @@ public:
                     &destinationRect,
                     transformComponent.rotation,
                     nullptr,
-                    SDL_FLIP_NONE
+                    spriteComponent.flip
             );
         }
     }
