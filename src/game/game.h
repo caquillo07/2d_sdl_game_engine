@@ -32,7 +32,6 @@ public:
 
     void Initialize();
     void Run();
-    void LoadLevel(int levelNumber) const;
     void Setup() const;
     void ProcessInput();
     void Update();

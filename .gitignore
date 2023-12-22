@@ -1,5 +1,7 @@
 build/*
 assets/*
+!assets/scripts/
+
 game_engine
 main
 .idea

@@ -6,6 +6,7 @@
 #define DAMAGE_SYSTEM_H
 
 #include "../ecs/ecs.h"
+#include "../components/health_component.h"
 #include "../components/box_collider_component.h"
 #include "../components/projectile_component.h"
 #include "../event_bus/event_bus.h"
