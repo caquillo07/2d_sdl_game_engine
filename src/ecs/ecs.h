@@ -313,12 +313,6 @@ void Registry::AddComponent(const Entity entity, TComponentArgs&&... args) {
     componentPool->Set(entityID, newComponent);
 
     entityComponentSignatures[entityID].set(componentID);
-
-    // Logger::Log(
-    //     "Component ID = " + std::to_string(componentID) +
-    //     " added to entity ID = " + std::to_string(entityID)
-    // );
-    printf("COMPONENT ID = %d ----> POOL SIZE = %d\n", componentID, componentPool->GetSize());
 }
 
 template<typename TComponent>
@@ -332,10 +326,6 @@ void Registry::RemoveComponent(const Entity entity) {
     componentPool->Remove(entityID);
 
     entityComponentSignatures[entityID].set(componentID, false);
-    Logger::Log(
-        "Component ID = " + std::to_string(componentID) +
-        " removed from entity ID = " + std::to_string(entityID)
-    );
 }
 
 template<typename TComponent>

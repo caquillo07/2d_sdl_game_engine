@@ -52,7 +52,7 @@ private:
                     projectile.Group("projectiles");
                     projectile.AddComponent<TransformComponent>(projectilePosition, glm::vec2(1.0, 1.0), 0.0);
                     projectile.AddComponent<RigidBodyComponent>(projectileVelocity);
-                    projectile.AddComponent<SpriteComponent>("bullet-image", 4, 4, 4);
+                    projectile.AddComponent<SpriteComponent>("bullet-texture", 4, 4, 4);
                     projectile.AddComponent<BoxColliderComponent>(4, 4);
                     projectile.AddComponent<ProjectileComponent>(
                         projectileEmitter.isFriendly, projectileEmitter.hitPercentDamage,
@@ -84,7 +84,6 @@ public:
 
             if (static_cast<int>(SDL_GetTicks()) - projectileEmitterComponent.lastEmissionTime >
                 projectileEmitterComponent.frequency) {
-                Logger::Log("Emitting from entity: " + std::to_string(entities.GetID()));
                 glm::vec2 projectilePosition = transformComponent.position;
                 if (entities.HasComponent<SpriteComponent>()) {
                     const auto spriteComponent = entities.GetComponent<SpriteComponent>();
@@ -101,7 +100,7 @@ public:
                 );
 
                 projectile.AddComponent<RigidBodyComponent>(projectileEmitterComponent.velocity);
-                projectile.AddComponent<SpriteComponent>("bullet-image", 4, 4, 4);
+                projectile.AddComponent<SpriteComponent>("bullet-texture", 4, 4, 4);
                 projectile.AddComponent<BoxColliderComponent>(4, 4);
                 projectile.AddComponent<ProjectileComponent>(
                     projectileEmitterComponent.isFriendly,

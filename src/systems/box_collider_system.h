@@ -42,7 +42,6 @@ public:
                     otherCollider.width,
                     otherCollider.height
                 )) {
-                    Logger::Log("Collision detected");
                     // emit event
                     eventBus->EmitEvent<CollisionEvent>(entity, otherEntity);
                 }

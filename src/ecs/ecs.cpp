@@ -20,7 +20,6 @@ void Entity::Tag(const std::string& tag) const {
 }
 
 bool Entity::HasTag(const std::string& tag) const {
-    Logger::Log("HasTag: " + tag);
     return registry->EntityHasTag(*this, tag);
 }
 
@@ -29,7 +28,6 @@ void Entity::Group(const std::string& group) const {
 }
 
 bool Entity::BelongsToGroup(const std::string& group) const {
-    Logger::Log("BelongsToGroup: " + group);
     return registry->EntityBelongsToGroup(*this, group);
 }
 

@@ -15,46 +15,73 @@
 #include "../components/projectile_emitter_component.h"
 #include "../components/rigid_body_component.h"
 #include "../components/sprite_component.h"
-#include "../components/text_label_component.h"
+#include "../components/keyword_controlled_component.h"
 #include "../components/transform_component.h"
 
-LevelLoader::LevelLoader() {
-}
+LevelLoader::LevelLoader() {}
 
-LevelLoader::~LevelLoader() {
-}
+LevelLoader::~LevelLoader() {}
 
 void LevelLoader::LoadLevel(
+    sol::state& lua,
     const std::unique_ptr<Registry>& registry,
     const std::unique_ptr<AssetStore>& assetStore,
     SDL_Renderer* renderer,
-    int i
+    const int levelNumber
 ) {
-    // adding assets to asset store
-    assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
-    assetStore->AddTexture(renderer, "truck-image", "./assets/images/truck-ford-right.png");
-    assetStore->AddTexture(renderer, "chopper-image", "./assets/images/chopper-spritesheet.png");
-    assetStore->AddTexture(renderer, "radar-image", "./assets/images/radar.png");
-    assetStore->AddTexture(renderer, "bullet-image", "./assets/images/bullet.png");
-    assetStore->AddTexture(renderer, "tree-image", "./assets/images/tree.png");
-    assetStore->AddFont("charriot-font", "./assets/fonts/charriot.ttf", 20);
-    assetStore->AddFont("pico8-font-5", "./assets/fonts/pico8.ttf", 5);
-    assetStore->AddFont("pico8-font-10", "./assets/fonts/pico8.ttf", 5);
+    std::string level1FileName = "./assets/scripts/level_" + std::to_string(levelNumber) + ".lua";
+    printf("parsing %s\n", level1FileName.c_str());
+    // This checks the syntax of our script, but it does not execute the script
+    if (sol::load_result script = lua.load_file(level1FileName); !script.valid()) {
+        sol::error err = script;
+        std::string errorMessage = err.what();
+        Logger::Err("Error loading the lua script: " + errorMessage);
+        return;
+    }
 
-    // Load the tilemap
-    assetStore->AddTexture(renderer, "tilemap-image", "./assets/tilemaps/jungle.png");
+    // Executes the script using the Sol state
+    lua.script_file(level1FileName);
 
-    // ugly, and does not check errors, but it works for now
-    // Load the tilemap
+    // Read the big table for the current level
+    sol::table level = lua["Level"];
 
+    ////////////////////////////////////////////////////////////////////////////
+    // Read the level assets
+    ////////////////////////////////////////////////////////////////////////////
+    sol::table assets = level["assets"];
+
+    int i = 0;
+    while (true) {
+        sol::optional<sol::table> hasAsset = assets[i];
+        if (hasAsset == sol::nullopt) {
+            break;
+        }
+        sol::table asset = assets[i];
+        std::string assetType = asset["type"];
+        std::string assetId = asset["id"];
+        if (assetType == "texture") {
+            assetStore->AddTexture(renderer, assetId, asset["file"]);
+            Logger::Log("A new texture asset was added to the asset store, id: " + assetId);
+        }
+        if (assetType == "font") {
+            assetStore->AddFont(assetId, asset["file"], asset["font_size"]);
+            Logger::Log("A new font asset was added to the asset store, id: " + assetId);
+        }
+        i++;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Read the level tilemap information
+    ////////////////////////////////////////////////////////////////////////////
+    sol::table map = level["tilemap"];
+    std::string mapFilePath = map["map_file"];
+    std::string mapTextureAssetId = map["texture_asset_id"];
+    int mapNumRows = map["num_rows"];
+    int mapNumCols = map["num_cols"];
+    int tileSize = map["tile_size"];
+    double mapScale = map["scale"];
     std::fstream mapFile;
-    mapFile.open("./assets/tilemaps/jungle.map");
-    std::cout << mapFile.is_open();
-
-    int tileSize = 32;
-    constexpr int mapNumRows = 20;
-    constexpr int mapNumCols = 25;
-    constexpr double tileScale = 2.0;
+    mapFile.open(mapFilePath);
     for (int y = 0; y < mapNumRows; y++) {
         for (int x = 0; x < mapNumCols; x++) {
             char ch;
@@ -65,105 +92,159 @@ void LevelLoader::LoadLevel(
             mapFile.ignore();
 
             Entity tile = registry->CreateEntity();
-            tile.Group("tiles");
-            tile.AddComponent<TransformComponent>(
-                glm::vec2(
-                    x * (tileScale * tileSize),
-                    y * (tileScale * tileSize)
-                ),
-                glm::vec2(tileScale, tileScale),
-                0.0
-            );
-            tile.AddComponent<SpriteComponent>(
-                "tilemap-image",
-                tileSize,
-                tileSize,
-                0,
-                false,
-                srcRectX,
-                srcRectY
-            );
+            tile.AddComponent<TransformComponent>(glm::vec2(x * (mapScale * tileSize), y * (mapScale * tileSize)), glm::vec2(mapScale, mapScale), 0.0);
+            tile.AddComponent<SpriteComponent>(mapTextureAssetId, tileSize, tileSize, 0, false, srcRectX, srcRectY);
         }
     }
     mapFile.close();
-    Game::mapHeight = mapNumRows * tileSize * tileScale;
-    Game::mapWidth = mapNumCols * tileSize * tileScale;
-    constexpr double MOVE_SPEED = 100.f;
+    Game::mapWidth = mapNumCols * tileSize * mapScale;
+    Game::mapHeight = mapNumRows * tileSize * mapScale;
 
-    Entity chopper = registry->CreateEntity();
-    chopper.Tag("player");
-    chopper.AddComponent<TransformComponent>(glm::vec2(245.f, 120.f), glm::vec2(1.f, 1.f), 0.f);
-    chopper.AddComponent<RigidBodyComponent>(glm::vec2(0.f, 0.f));
-    chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
-    chopper.AddComponent<AnimationComponent>(2, 15, true);
-    chopper.AddComponent<BoxColliderComponent>(32, 32, glm::vec2(0));
-    chopper.AddComponent<KeywordControlledComponent>(
-        glm::vec2(0.f, -MOVE_SPEED),
-        glm::vec2(MOVE_SPEED, 0.f),
-        glm::vec2(0.f, MOVE_SPEED),
-        glm::vec2(-MOVE_SPEED, 0.f)
-    );
-    chopper.AddComponent<CameraComponent>();
-    chopper.AddComponent<HealthComponent>(100);
-    chopper.AddComponent<ProjectileEmitterComponent>(glm::vec2(150.0, 150.0), 0, 10000, 25, true);
+    ////////////////////////////////////////////////////////////////////////////
+    // Read the level entities and their components
+    ////////////////////////////////////////////////////////////////////////////
+    sol::table entities = level["entities"];
+    i = 0;
+    while (true) {
+        sol::optional<sol::table> hasEntity = entities[i];
+        if (hasEntity == sol::nullopt) {
+            break;
+        }
 
+        sol::table entity = entities[i];
 
-    Entity radar = registry->CreateEntity();
-    radar.AddComponent<TransformComponent>(glm::vec2(Game::windowWidth - 64 * 2, 10.0), glm::vec2(2.f, 2.f), 0.f);
-    radar.AddComponent<RigidBodyComponent>(glm::vec2(0.f, 0.f));
-    radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 2, true);
-    radar.AddComponent<AnimationComponent>(8, 5, true);
+        Entity newEntity = registry->CreateEntity();
 
+        // Tag
+        sol::optional<std::string> tag = entity["tag"];
+        if (tag != sol::nullopt) {
+            newEntity.Tag(entity["tag"]);
+        }
 
-    Entity tank = registry->CreateEntity();
-    tank.Group("enemies");
-    tank.AddComponent<TransformComponent>(glm::vec2(500.f, 500.f), glm::vec2(1.f, 1.f), 0.f);
-    tank.AddComponent<RigidBodyComponent>(glm::vec2(100.f, 0.f));
-    tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 2);
-    tank.AddComponent<BoxColliderComponent>(32, 32, glm::vec2(0));
-    // tank.AddComponent<ProjectileEmitterComponent>(
-    //     glm::vec2(-100.f, 0.f),
-    //     5000,
-    //     3000,
-    //     10,
-    //     false
-    // );
-    tank.AddComponent<HealthComponent>(100);
+        // Group
+        sol::optional<std::string> group = entity["group"];
+        if (group != sol::nullopt) {
+            newEntity.Group(entity["group"]);
+        }
 
-    Entity treeA = registry->CreateEntity();
-    treeA.Group("obstacles");
-    treeA.AddComponent<TransformComponent>(glm::vec2(600.f, 495.f), glm::vec2(1.f, 1.f), 0.f);
-    treeA.AddComponent<SpriteComponent>("tree-image", 16, 32, 2);
-    treeA.AddComponent<BoxColliderComponent>(16, 32, glm::vec2(0));
+        // Components
+        sol::optional<sol::table> hasComponents = entity["components"];
+        if (hasComponents != sol::nullopt) {
+            // Transform
+            sol::optional<sol::table> transform = entity["components"]["transform"];
+            if (transform != sol::nullopt) {
+                newEntity.AddComponent<TransformComponent>(
+                    glm::vec2(
+                        entity["components"]["transform"]["position"]["x"],
+                        entity["components"]["transform"]["position"]["y"]
+                    ),
+                    glm::vec2(
+                        entity["components"]["transform"]["scale"]["x"].get_or(1.0),
+                        entity["components"]["transform"]["scale"]["y"].get_or(1.0)
+                    ),
+                    entity["components"]["transform"]["rotation"].get_or(0.0)
+                );
+            }
 
-    Entity treeB = registry->CreateEntity();
-    treeB.Group("obstacles");
-    treeB.AddComponent<TransformComponent>(glm::vec2(400.f, 495.f), glm::vec2(1.f, 1.f), 0.f);
-    treeB.AddComponent<SpriteComponent>("tree-image", 16, 32, 2);
-    treeB.AddComponent<BoxColliderComponent>(16, 32, glm::vec2(0));
+            // RigidBody
+            sol::optional<sol::table> rigidbody = entity["components"]["rigidbody"];
+            if (rigidbody != sol::nullopt) {
+                newEntity.AddComponent<RigidBodyComponent>(
+                    glm::vec2(
+                        entity["components"]["rigidbody"]["velocity"]["x"].get_or(0.0),
+                        entity["components"]["rigidbody"]["velocity"]["y"].get_or(0.0)
+                    )
+                );
+            }
 
-    Entity truck = registry->CreateEntity();
-    truck.Group("enemies");
-    truck.AddComponent<TransformComponent>(glm::vec2(200.f, 500.f), glm::vec2(1.f, 1.f), 0.f);
-    truck.AddComponent<RigidBodyComponent>(glm::vec2(0.f, 0.f));
-    truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
-    truck.AddComponent<BoxColliderComponent>(32, 32, glm::vec2(0));
-    truck.AddComponent<ProjectileEmitterComponent>(
-        glm::vec2(0.f, -100.f),
-        2000,
-        5000,
-        10,
-        false
-    );
-    truck.AddComponent<HealthComponent>(100);
+            // Sprite
+            sol::optional<sol::table> sprite = entity["components"]["sprite"];
+            if (sprite != sol::nullopt) {
+                newEntity.AddComponent<SpriteComponent>(
+                    entity["components"]["sprite"]["texture_asset_id"],
+                    entity["components"]["sprite"]["width"],
+                    entity["components"]["sprite"]["height"],
+                    entity["components"]["sprite"]["z_index"].get_or(1),
+                    entity["components"]["sprite"]["fixed"].get_or(false),
+                    entity["components"]["sprite"]["src_rect_x"].get_or(0),
+                    entity["components"]["sprite"]["src_rect_y"].get_or(0)
+                );
+            }
 
-    Entity label = registry->CreateEntity();
-    SDL_Color white = {255, 255, 255};
-    label.AddComponent<TextLabelComponent>(
-        glm::vec2(Game::windowWidth / 2 - 40, 10),
-        "CHOPPER 1.0",
-        "charriot-font",
-        white,
-        true
-    );
+            // Animation
+            sol::optional<sol::table> animation = entity["components"]["animation"];
+            if (animation != sol::nullopt) {
+                newEntity.AddComponent<AnimationComponent>(
+                    entity["components"]["animation"]["num_frames"].get_or(1),
+                    entity["components"]["animation"]["speed_rate"].get_or(1)
+                );
+            }
+
+            // BoxCollider
+            sol::optional<sol::table> collider = entity["components"]["boxcollider"];
+            if (collider != sol::nullopt) {
+                newEntity.AddComponent<BoxColliderComponent>(
+                    entity["components"]["boxcollider"]["width"],
+                    entity["components"]["boxcollider"]["height"],
+                    glm::vec2(
+                        entity["components"]["boxcollider"]["offset"]["x"].get_or(0),
+                        entity["components"]["boxcollider"]["offset"]["y"].get_or(0)
+                    )
+                );
+            }
+
+            // Health
+            sol::optional<sol::table> health = entity["components"]["health"];
+            if (health != sol::nullopt) {
+                newEntity.AddComponent<HealthComponent>(
+                    static_cast<int>(entity["components"]["health"]["health_percentage"].get_or(100))
+                );
+            }
+
+            // ProjectileEmitter
+            sol::optional<sol::table> projectileEmitter = entity["components"]["projectile_emitter"];
+            if (projectileEmitter != sol::nullopt) {
+                newEntity.AddComponent<ProjectileEmitterComponent>(
+                    glm::vec2(
+                        entity["components"]["projectile_emitter"]["projectile_velocity"]["x"],
+                        entity["components"]["projectile_emitter"]["projectile_velocity"]["y"]
+                    ),
+                    static_cast<int>(entity["components"]["projectile_emitter"]["repeat_frequency"].get_or(1)) * 1000,
+                    static_cast<int>(entity["components"]["projectile_emitter"]["projectile_duration"].get_or(10)) * 1000,
+                    static_cast<int>(entity["components"]["projectile_emitter"]["hit_percentage_damage"].get_or(10)),
+                    entity["components"]["projectile_emitter"]["friendly"].get_or(false)
+                );
+            }
+
+            // CameraFollow
+            sol::optional<sol::table> cameraFollow = entity["components"]["camera_follow"];
+            if (cameraFollow != sol::nullopt) {
+                newEntity.AddComponent<CameraComponent>();
+            }
+
+            // KeyboardControlled
+            sol::optional<sol::table> keyboardControlled = entity["components"]["keyboard_controller"];
+            if (keyboardControlled != sol::nullopt) {
+                newEntity.AddComponent<KeywordControlledComponent>(
+                    glm::vec2(
+                        entity["components"]["keyboard_controller"]["up_velocity"]["x"],
+                        entity["components"]["keyboard_controller"]["up_velocity"]["y"]
+                    ),
+                    glm::vec2(
+                        entity["components"]["keyboard_controller"]["right_velocity"]["x"],
+                        entity["components"]["keyboard_controller"]["right_velocity"]["y"]
+                    ),
+                    glm::vec2(
+                        entity["components"]["keyboard_controller"]["down_velocity"]["x"],
+                        entity["components"]["keyboard_controller"]["down_velocity"]["y"]
+                    ),
+                    glm::vec2(
+                        entity["components"]["keyboard_controller"]["left_velocity"]["x"],
+                        entity["components"]["keyboard_controller"]["left_velocity"]["y"]
+                    )
+                );
+            }
+        }
+        i++;
+    }
 }

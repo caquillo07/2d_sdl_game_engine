@@ -2,19 +2,19 @@
 #include <fstream>
 #include <iostream>
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_sdl.h>
+#include <imgui/imgui_sdl.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
-#include <imgui/imgui.h>
-#include <imgui/imgui_sdl.h>
-#include <imgui/imgui_impl_sdl.h>
+#include <sol/sol.hpp>
 
 #include "game.h"
 
 #include "level_loader.h"
-#include "../components/sprite_component.h"
 #include "../ecs/ecs.h"
 #include "../systems/animation_system.h"
 #include "../systems/box_collider_system.h"
@@ -25,16 +25,16 @@
 #include "../systems/projectile_emit_system.h"
 #include "../systems/projectile_lifecycle_system.h"
 #include "../systems/render_collider_system.h"
+#include "../systems/render_gui_system.h"
+#include "../systems/render_health_bar_system.h"
 #include "../systems/render_system.h"
 #include "../systems/render_text_system.h"
-#include "../systems/render_health_bar_system.h"
-#include "../systems/render_gui_system.h"
 
 
-int Game::windowWidth = 0;
+int Game::mapWidth     = 0;
+int Game::mapHeight    = 0;
+int Game::windowWidth  = 0;
 int Game::windowHeight = 0;
-int Game::mapWidth = 0;
-int Game::mapHeight = 0;
 
 Game::Game() : isRunning(false),
                isDebug(false),
@@ -43,9 +43,9 @@ Game::Game() : isRunning(false),
                camera(SDL_Rect{}),
                window(nullptr),
                renderer(nullptr) {
-    this->registry = std::make_unique<Registry>();
+    this->registry   = std::make_unique<Registry>();
     this->assetStore = std::make_unique<AssetStore>();
-    this->eventBus = std::make_unique<EventBus>();
+    this->eventBus   = std::make_unique<EventBus>();
 
     Logger::Log("Game constructor");
 }
@@ -64,29 +64,30 @@ void Game::Run() {
     }
 }
 
-void Game::Setup() const {
+void Game::Setup() {
     // add a system that needs to be processed in our game
-    this->registry->AddSystem<MovementSystem>();
+    this->registry->AddSystem<DamageSystem>();
     this->registry->AddSystem<RenderSystem>();
+    this->registry->AddSystem<MovementSystem>();
     this->registry->AddSystem<AnimationSystem>();
+    this->registry->AddSystem<RenderGUISystem>();
+    this->registry->AddSystem<RenderTextSystem>();
     this->registry->AddSystem<BoxColliderSystem>();
     this->registry->AddSystem<RenderColliderSystem>();
-    this->registry->AddSystem<DamageSystem>();
     this->registry->AddSystem<KeyboardControlSystem>();
     this->registry->AddSystem<CameraMovementSystem>();
     this->registry->AddSystem<ProjectileEmitSystem>();
-    this->registry->AddSystem<ProjectileLifecycleSystem>();
-    this->registry->AddSystem<RenderTextSystem>();
     this->registry->AddSystem<RenderHeathBarSystem>();
-    this->registry->AddSystem<RenderGUISystem>();
+    this->registry->AddSystem<ProjectileLifecycleSystem>();
 
-    LevelLoader().LoadLevel(registry, assetStore, renderer, 1);
+    lua.open_libraries(sol::lib::base, sol::lib::math);
+    LevelLoader::LoadLevel(lua, registry, assetStore, renderer, 1);
 }
 
 void Game::Update() {
     // Wait until 16ms has elapsed since last frame
     const int timeToWait =
-            MILLIS_PER_FRAME - (static_cast<int>(SDL_GetTicks()) - millisecondsPreviousFrame);
+        MILLIS_PER_FRAME - (static_cast<int>(SDL_GetTicks()) - millisecondsPreviousFrame);
     if (timeToWait > 0 && timeToWait <= MILLIS_PER_FRAME) {
         SDL_Delay(timeToWait);
     }
@@ -179,8 +180,8 @@ void Game::Initialize() {
     }
     // this->windowWidth = displayMode.w;
     // this->windowHeight = displayMode.h;
-    windowWidth = 1280; // displayMode.w;
-    windowHeight = 720; // displayMode.h;
+    windowWidth  = 1280; // displayMode.w;
+    windowHeight = 720;  // displayMode.h;
     // this->windowWidth = 25 * 32 * 2; // displayMode.w;
     // this->windowHeight = 20 * 32 * 2; // displayMode.h;
 
@@ -228,9 +229,9 @@ void Game::ProcessInput() {
         ImGuiIO& io = ImGui::GetIO();
         int mouseX, mouseY;
         const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
-        io.MousePos = ImVec2(mouseX, mouseY);
-        io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
-        io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+        io.MousePos       = ImVec2(mouseX, mouseY);
+        io.MouseDown[0]   = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
+        io.MouseDown[1]   = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
 
         switch (sdlEvent.type) {
             case SDL_QUIT: this->isRunning = false;
