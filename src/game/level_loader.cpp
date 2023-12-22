@@ -14,8 +14,8 @@
 #include "../components/keyword_controlled_component.h"
 #include "../components/projectile_emitter_component.h"
 #include "../components/rigid_body_component.h"
+#include "../components/script_component.h"
 #include "../components/sprite_component.h"
-#include "../components/keyword_controlled_component.h"
 #include "../components/transform_component.h"
 
 LevelLoader::LevelLoader() {}
@@ -243,6 +243,12 @@ void LevelLoader::LoadLevel(
                         entity["components"]["keyboard_controller"]["left_velocity"]["y"]
                     )
                 );
+            }
+                        // Script
+            sol::optional<sol::table> script = entity["components"]["on_update_script"];
+            if (script != sol::nullopt) {
+                sol::function func = entity["components"]["on_update_script"][0];
+                newEntity.AddComponent<ScriptComponent>(func);
             }
         }
         i++;

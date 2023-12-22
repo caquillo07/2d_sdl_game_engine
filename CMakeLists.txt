@@ -458,6 +458,8 @@ add_executable(2d_sdl_game_engine
         libs/imgui/imgui_impl_sdl.cpp
         src/game/level_loader.cpp
         src/game/level_loader.h
+        src/components/script_component.h
+        src/systems/script_system.h
 )
 
 target_link_libraries(2d_sdl_game_engine ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES})

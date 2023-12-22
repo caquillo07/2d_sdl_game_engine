@@ -1,7 +1,4 @@
 #include <cstdio>
-#include <fstream>
-#include <iostream>
-
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_sdl.h>
 #include <imgui/imgui_sdl.h>
@@ -12,9 +9,8 @@
 #include <SDL2/SDL_video.h>
 #include <sol/sol.hpp>
 
-#include "game.h"
-
 #include "level_loader.h"
+#include "game.h"
 #include "../ecs/ecs.h"
 #include "../systems/animation_system.h"
 #include "../systems/box_collider_system.h"
@@ -29,6 +25,7 @@
 #include "../systems/render_health_bar_system.h"
 #include "../systems/render_system.h"
 #include "../systems/render_text_system.h"
+#include "../systems/script_system.h"
 
 
 int Game::mapWidth     = 0;
@@ -79,9 +76,12 @@ void Game::Setup() {
     this->registry->AddSystem<ProjectileEmitSystem>();
     this->registry->AddSystem<RenderHeathBarSystem>();
     this->registry->AddSystem<ProjectileLifecycleSystem>();
+    this->registry->AddSystem<ScriptSystem>();
 
-    lua.open_libraries(sol::lib::base, sol::lib::math);
-    LevelLoader::LoadLevel(lua, registry, assetStore, renderer, 1);
+    this->registry->GetSystem<ScriptSystem>().CreateLuaBindings(lua);
+
+    lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::os);
+    LevelLoader::LoadLevel(lua, registry, assetStore, renderer, 2);
 }
 
 void Game::Update() {
@@ -118,6 +118,7 @@ void Game::Update() {
     registry->GetSystem<ProjectileEmitSystem>().Update(this->registry);
     registry->GetSystem<CameraMovementSystem>().Update(this->camera);
     registry->GetSystem<ProjectileLifecycleSystem>().Update();
+    registry->GetSystem<ScriptSystem>().Update(deltaTime, SDL_GetTicks());
 
     // *************************************************************************
     // print FPS
